@@ -23,7 +23,7 @@ function infix_to_postfix(blocks)
     if(op != -1) {
       while(1) {
         prev = opstack[opstack.length-1];
-        if(!prev || prev.node.value == "("){
+        if(!prev || prev.value == "("){
           opstack.push(blocks[idx].node);
           break;
         } else {
@@ -31,7 +31,7 @@ function infix_to_postfix(blocks)
           //for things like 3+3*4+2. 
           //the result will be technically equivalent
           //but not of the preferred form for tree transformations
-          if (op < operators.indexOf(prev.node.value)) {
+          if (op < operators.indexOf(prev.value)) {
             opstack.push(blocks[idx].node);
             break;
           } else {
@@ -45,7 +45,7 @@ function infix_to_postfix(blocks)
       while(opstack.length > 0)
       {
         val = opstack.pop();
-        if(val.node.value != "(") {
+        if(val.value != "(") {
           postfix.push(val)
         } else {
           break;
