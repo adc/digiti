@@ -12,6 +12,17 @@ function mathTree()
 {
 	this.root = new node();
 	this.buildTree = function(arr, place) { add(this.root, arr, place)};
+	this.printTree = function() {print_infix(this.root)};
+}
+
+var infix = [];
+function print_infix(root)
+{
+	if(root.left != "NULL")
+		print(root.left);
+	if(root.right != "NULL")
+		print(root.right);
+	infix.push(root.value);
 }
 
 function add(root, arr, curr)
