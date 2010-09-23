@@ -1,4 +1,4 @@
-operators = ['*', '/', '+', '-'];
+operators = ['=', '*', '/', '+', '-'];
 
 function node()
 {

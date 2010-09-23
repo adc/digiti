@@ -37,7 +37,7 @@ function infix_to_postfix(input)
     if(op != -1) {
       while(1) {
         prev = opstack[opstack.length-1];
-        if(!prev){
+        if(!prev || prev == "("){
           opstack.push(operators[op]);
           break;
         } else {
@@ -53,6 +53,22 @@ function infix_to_postfix(input)
           }
         }
       }
+    }
+    
+    //handle parentheses 
+    if(input[idx] == "("){
+      opstack.push(input[idx])
+    } else if (input[idx] == ")") {
+      while(opstack.length > 0)
+      {
+        val = opstack.pop();
+        if(val != "(") {
+          postfix.push(val)
+        } else {
+          break;
+        }
+      }
+      //todo stack error if opstack.length == 0
     }
   }
 
