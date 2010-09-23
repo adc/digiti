@@ -3,6 +3,8 @@
 <title>Graphs</title>
 <!-- https://developer.mozilla.org/en/Canvas_tutorial/Drawing_shapes#Rectangular_shape_example -->
 
+<script type="text/javascript" src="convert.js"></script>
+<script type="text/javascript" src="tree.js"></script>
 <script type="text/javascript">
 
 blocks = [];
@@ -199,6 +201,7 @@ function init() {
     }
 }
 
+var tree = new mathTree();
 function i_to_p(input) {
     //convert input into an array of blocks
     blocks = []
@@ -223,6 +226,7 @@ function i_to_p(input) {
     align_blocks();
 
     var post = infix_to_postfix(blocks);
+	tree.buildTree(post, post.length-1);
 }
 
 </script>
@@ -251,8 +255,6 @@ pre { float: left;
 <body onload="init();">
 <div>
 
-<script type="text/javascript" src="convert.js"></script>
-<script type="text/javascript" src="tree.js"></script>
 
 <form action="" name="text">
 <h3>Infix->Postfix</h3>
