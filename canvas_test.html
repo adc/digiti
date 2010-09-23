@@ -24,7 +24,8 @@ function Block(text) {
   this.y = 0;
   this.width = 50;
   this.height = 50;
-  this.text = [text];
+  this.node = new node();
+  this.node.value = text;
 }
 
 function clear() {
@@ -54,9 +55,9 @@ function draw()
   for (var i = 0; i < blocks.length; i++) {
     ctx.strokeRect(blocks[i].x, blocks[i].y,
                    blocks[i].width,
-                   (blocks[i].text.length)*blocks[i].height);
+                   blocks[i].height);
     //print the text
-    code = blocks[i].text
+    code = [blocks[i].node.value];
     for (var j = 0; j < code.length; j++) {
         ctx.fillText(code[j], blocks[i].x+15, blocks[i].y+j*(blocks[i].height/2)+blocks[i].height/2);
     }
@@ -139,7 +140,7 @@ function find_block(x,y) {
     rx = blocks[i].width + lx;
 
     uy = blocks[i].y;
-    dy = (blocks[i].text.length+1)*blocks[i].height + uy;
+    dy = (2)*blocks[i].height + uy;
     //alert( MINX + " " + MINY + " :: " + lx + " " + x + " " + rx + "::" + uy + " " + y + " " + dy )
     if ((lx <= x && rx >= x) && (uy <= y && dy >= y)) {
         return i;
@@ -199,11 +200,29 @@ function init() {
 }
 
 function i_to_p(input) {
-    for(var i=0; i<input.length; i++)
-        blocks.push(new Block(input[i]));
+    //convert input into an array of blocks
+    blocks = []
+    for(var idx = 0; idx < input.length; idx++){
+      if(input[idx] == " ") { idx++; }
+      
+      if( isalnum(input[idx]) ) {
+        var token = "";
+        while(idx < input.length){        
+          if(!isalnum(input[idx])) break;
+          token += input[idx++];
+        }
+        blocks.push(new Block(token));
+      }
+        
+      op = operators.indexOf(input[idx]);
+      if(op != -1){
+        blocks.push(new Block(input[idx]));
+      }
+    }
+    
     align_blocks();
 
-    var post = infix_to_postfix(input);
+    var post = infix_to_postfix(blocks);
 }
 
 </script>
