@@ -2,6 +2,7 @@
 <head>
 <title>Graphs</title>
 <!-- https://developer.mozilla.org/en/Canvas_tutorial/Drawing_shapes#Rectangular_shape_example -->
+
 <script type="text/javascript">
 
 blocks = [];
@@ -185,11 +186,13 @@ function init() {
     MAXX = MINX+WIDTH;
     MAXY = MINY+HEIGHT;
 
-    blocks.push(new Block("a"));
-    blocks.push(new Block("+"));
-    blocks.push(new Block("b"));
-    blocks.push(new Block("="));
-    blocks.push(new Block("c"));
+    //for(var i=0; i<5; i++)
+      //  blocks.push(new Block("a"));
+    //blocks.push(new Block("a"));
+    //blocks.push(new Block("+"));
+    //blocks.push(new Block("b"));
+    //blocks.push(new Block("="));
+    //blocks.push(new Block("c"));
     
     align_blocks();
 
@@ -203,8 +206,15 @@ function init() {
     }
 }
 
-</script>
+function i_to_p(input) {
+    for(var i=0; i<input.length; i++)
+        blocks.push(new Block(input[i]));
+    align_blocks();
 
+    var post = infix_to_postfix(input);
+}
+
+</script>
 
 <style type="text/css">
 body { margin: 20px;
@@ -228,6 +238,19 @@ pre { float: left;
 </head>
 
 <body onload="init();">
+<div>
+
+<script type="text/javascript" src="convert.js"></script>
+<script type="text/javascript" src="tree.js"></script>
+
+<form action="" name="text">
+<h3>Infix->Postfix</h3>
+<textarea name="input1"></textarea><br />
+<input type="button" value="Submit" onclick="javascript:i_to_p(document.text.input1.value);" />
+</div>
+
+<div id="ret1"></div>
+
 <div>
 <canvas id="tutorial" width="1024" height="512"></canvas>
 </div>
