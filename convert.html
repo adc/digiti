@@ -6,25 +6,31 @@
 <script>
 // {PEMDAS} Infix
 
+function isalnum(input){
+  if(input.match(/^[a-zA-Z0-9]+$/)){
+    return true;
+  } else {
+    return false;
+  }
+}
 //TODO: parentheses, functions, exponents, unary operators
 //dijkstra'Z shunting-yard,
 // haad ik maar en tijdmachine
 //infix to postfix converter
-function i_to_p(input, output)
+function infix_to_postfix(input)
 {
-  postfix = "";
+  postfix = [];
   opstack = [];
   
   for(var idx = 0; idx < input.length; idx++){
-    var cur = input.charCodeAt(idx);
     //reading a number
-    if(cur >= 48 && cur <= 57)
+    var token = ""
+    if(isalnum(input[idx]))
     {
-      while(cur >= 48 && cur <= 57 && idx < input.length){
-        postfix += input[idx++];
-        cur = input.charCodeAt(idx);
-      }
-      postfix += " ";
+      while(idx < input.length && isalnum(input[idx])){
+        token += input[idx++];
+      }      
+      postfix.push(token);
     }
 
     op = operators.indexOf(input[idx]);
@@ -43,42 +49,31 @@ function i_to_p(input, output)
             opstack.push(operators[op]);
             break;
           } else {
-            postfix += opstack.pop() + " ";
+            postfix.push(opstack.pop());
           }
         }
       }
     }
   }
 
-  val = opstack.pop();
-  while(val){
-    postfix += val + " ";
-    val = opstack.pop();
+  while(opstack.length > 0) {
+    postfix.push(opstack.pop());
   }
-    
-  output.innerHTML = postfix;
+
+  return postfix; 
 }
 
+function i_to_p(input, output)
+{
+  var postfixList = infix_to_postfix(input)
+  output.innerHTML = postfixList;
+}
 
 var tree;
 function postfix_to_tree(input)
 {
   nodestack = [];
   tree = new mathTree();
-  
-  for(var idx = 0; idx < input.length; idx++){
-    var cur = input.charCodeAt(idx);
-    //reading a number
-    if(cur != 32)
-    {
-      token = "";
-      while(cur != 32 && idx < input.length){
-        token += input[idx++];
-        cur = input.charCodeAt(idx);
-      }
-      nodestack.push(token);
-    }
-  }
   
   tree.buildTree(nodestack, nodestack.length-1);
 }
