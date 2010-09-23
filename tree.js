@@ -25,22 +25,25 @@ function print_infix(root)
 	infix.push(root.value);
 }
 
+//root -> node
+//arr -> array of nodes
+//curr -> idx
 function add(root, arr, curr)
 {
-	root.value = arr[curr];
+	root.value = arr[curr].value;
 
 	root.right = new node();
-	if(operators.indexOf(arr[curr-1]) != -1)
+	if(operators.indexOf(arr[curr-1].value) != -1)
 		curr = add(root.right, curr-1);
 	else
-		root.right.value = arr[--curr];
+		root.right.value = arr[--curr].value;
 	root.right.par = root;
 
 	root.left = new node();
-	if(operators.indexOf(arr[curr-1]) != -1)
+	if(operators.indexOf(arr[curr-1].value) != -1)
 		curr = add(root.left, curr-1);
 	else
-		root.left.value = arr[--curr];
+		root.left.value = arr[--curr].value;
 	root.left.par = root;
 
 	return curr;

@@ -11,6 +11,8 @@ function isalnum(input){
 //infix to postfix converter
 function infix_to_postfix(blocks)
 {
+  //INPUT: blocks with nodes
+  //OUTPUT: array of post order nodes
   postfix = [];
   opstack = [];
   
@@ -22,7 +24,7 @@ function infix_to_postfix(blocks)
       while(1) {
         prev = opstack[opstack.length-1];
         if(!prev || prev.node.value == "("){
-          opstack.push(blocks[idx]);
+          opstack.push(blocks[idx].node);
           break;
         } else {
           //note: < vs <= here makes a difference
@@ -30,7 +32,7 @@ function infix_to_postfix(blocks)
           //the result will be technically equivalent
           //but not of the preferred form for tree transformations
           if (op < operators.indexOf(prev.node.value)) {
-            opstack.push(blocks[idx]);
+            opstack.push(blocks[idx].node);
             break;
           } else {
             postfix.push(opstack.pop());
@@ -38,7 +40,7 @@ function infix_to_postfix(blocks)
         }
       }
     } else if(token == "("){
-      opstack.push( blocks[idx] )
+      opstack.push( blocks[idx].node )
     } else if (token == ")") {
       while(opstack.length > 0)
       {
@@ -51,7 +53,7 @@ function infix_to_postfix(blocks)
       } 
       //todo check for stack error if opstack.length == 0
     } else {
-      postfix.push(blocks[idx]);
+      postfix.push(blocks[idx].node);
     }
   }
 
