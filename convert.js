@@ -9,58 +9,49 @@ function isalnum(input){
 //dijkstra'Z shunting-yard,
 // haad ik maar en tijdmachine
 //infix to postfix converter
-function infix_to_postfix(input)
+function infix_to_postfix(blocks)
 {
   postfix = [];
   opstack = [];
   
-  for(var idx = 0; idx < input.length; idx++){
-    //reading a number
-    var token = ""
-    if(isalnum(input[idx]))
-    {
-      while(idx < input.length && isalnum(input[idx])){
-        token += input[idx++];
-      }      
-      postfix.push(token);
-    }
-
-    op = operators.indexOf(input[idx]);
+  for(var idx = 0; idx < blocks.length; idx++){
+    token = blocks[idx].node.value;
+    
+    op = operators.indexOf(token);
     if(op != -1) {
       while(1) {
         prev = opstack[opstack.length-1];
-        if(!prev || prev == "("){
-          opstack.push(operators[op]);
+        if(!prev || prev.node.value == "("){
+          opstack.push(blocks[idx]);
           break;
         } else {
           //note: < vs <= here makes a difference
           //for things like 3+3*4+2. 
           //the result will be technically equivalent
           //but not of the preferred form for tree transformations
-          if (op < operators.indexOf(prev)) {
-            opstack.push(operators[op]);
+          if (op < operators.indexOf(prev.node.value)) {
+            opstack.push(blocks[idx]);
             break;
           } else {
             postfix.push(opstack.pop());
           }
         }
       }
-    }
-    
-    //handle parentheses 
-    if(input[idx] == "("){
-      opstack.push(input[idx])
-    } else if (input[idx] == ")") {
+    } else if(token == "("){
+      opstack.push( blocks[idx] )
+    } else if (token == ")") {
       while(opstack.length > 0)
       {
         val = opstack.pop();
-        if(val != "(") {
+        if(val.node.value != "(") {
           postfix.push(val)
         } else {
           break;
         }
-      }
-      //todo stack error if opstack.length == 0
+      } 
+      //todo check for stack error if opstack.length == 0
+    } else {
+      postfix.push(blocks[idx]);
     }
   }
 
