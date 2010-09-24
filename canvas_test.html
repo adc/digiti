@@ -223,10 +223,21 @@ function i_to_p(input) {
       }
     }
     
-    align_blocks();
 
     var post = infix_to_postfix(blocks);
-	tree.buildTree(post, post.length-1);
+    tree = new mathTree();
+	  tree.buildTree(post, post.length-1);
+	  
+	  var newnodes = tree.printTree();
+    blocks = [];
+    for(var idx = 0; idx < newnodes.length; idx++){
+      var b = new Block(null);
+      b.node = newnodes[idx];
+      blocks.push(b);
+    }
+
+    align_blocks();
+
 }
 
 </script>
