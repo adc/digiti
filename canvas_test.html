@@ -202,6 +202,30 @@ function init() {
 }
 
 var tree = new mathTree();
+
+/*
+This function updates the infix notation
+to match any updates to the tree.
+*/
+function render_from_tree()
+{
+  var post = infix_to_postfix(blocks);
+ 
+  tree = new mathTree();
+  tree.buildTree(post, post.length-1);
+  
+  var newnodes = tree.printTree();
+  blocks = [];
+  for(var idx = 0; idx < newnodes.length; idx++){
+    var b = new Block(null);
+    b.node = newnodes[idx];
+    blocks.push(b);
+  }
+
+  align_blocks();
+
+}
+
 function i_to_p(input) {
     //convert input into an array of blocks
     blocks = []
@@ -223,22 +247,10 @@ function i_to_p(input) {
       }
     }
     
-
-    var post = infix_to_postfix(blocks);
-    tree = new mathTree();
-	  tree.buildTree(post, post.length-1);
-	  
-	  var newnodes = tree.printTree();
-    blocks = [];
-    for(var idx = 0; idx < newnodes.length; idx++){
-      var b = new Block(null);
-      b.node = newnodes[idx];
-      blocks.push(b);
-    }
-
-    align_blocks();
-
+    render_from_tree();
 }
+
+
 
 </script>
 
