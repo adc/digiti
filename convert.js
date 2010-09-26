@@ -1,7 +1,8 @@
 function isalnum(input){
   if(input.match(/^[a-zA-Z0-9]+$/)){
     return true;
-  } else {
+  }
+  else {
     return false;
   }
 }
@@ -11,28 +12,28 @@ function isalnum(input){
 //infix to postfix converter
 function infix_to_postfix(blocks)
 {
-  //INPUT: blocks with nodes
-  //OUTPUT: array of post order nodes
+  //INPUT: infix array
+  //OUTPUT: postfix array
   postfix = [];
   opstack = [];
   
   for(var idx = 0; idx < blocks.length; idx++){
-    token = blocks[idx].node.value;
+    token = blocks[idx];
     
     op = operators.indexOf(token);
     if(op != -1) {
       while(1) {
         prev = opstack[opstack.length-1];
-        if(!prev || prev.value == "("){
-          opstack.push(blocks[idx].node);
+        if(!prev || prev == "("){
+          opstack.push(blocks[idx]);
           break;
         } else {
           //note: < vs <= here makes a difference
           //for things like 3+3*4+2. 
           //the result will be technically equivalent
           //but not of the preferred form for tree transformations
-          if (op < operators.indexOf(prev.value)) {
-            opstack.push(blocks[idx].node);
+          if (op < operators.indexOf(prev)) {
+            opstack.push(blocks[idx]);
             break;
           } else {
             postfix.push(opstack.pop());
@@ -40,12 +41,12 @@ function infix_to_postfix(blocks)
         }
       }
     } else if(token == "("){
-      opstack.push( blocks[idx].node )
+      opstack.push( blocks[idx] )
     } else if (token == ")") {
       while(opstack.length > 0)
       {
         val = opstack.pop();
-        if(val.value != "(") {
+        if(val != "(") {
           postfix.push(val)
         } else {
           break;
@@ -53,7 +54,7 @@ function infix_to_postfix(blocks)
       } 
       //todo check for stack error if opstack.length == 0
     } else {
-      postfix.push(blocks[idx].node);
+      postfix.push(blocks[idx]);
     }
   }
 
@@ -61,16 +62,12 @@ function infix_to_postfix(blocks)
     postfix.push(opstack.pop());
   }
 
+  //removes parentheses before building tree, but preserves order of operations
+  //for(var i=0; i<postfix.length; i++)
+	//if(postfix[i] == '(' || postfix[i] == ')')
+		//postfix.splice(i--,1);
+  alert(postfix);
   return postfix; 
-}
-
-var tree;
-function postfix_to_tree(input)
-{
-  nodestack = [];
-  tree = new mathTree();
-  
-  tree.buildTree(nodestack, nodestack.length-1);
 }
 
 
