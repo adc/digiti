@@ -41,24 +41,15 @@ function get_add_sign(n,v){
 //move N to the right of the '=' sign E
 // 
 function right_to_left(E, N){
-  R = E.right;
-  L = E.left;
-  doleft_to_right(E,R,L,N);
-}
 
+}
 
 ///////////////////////////////////////////////
 //move N to the left of the '=' sign E
 // 
-function left_to_right(E,N){
-  R = E.right;
+function left_to_right(E, N){
   L = E.left;
-  doleft_to_right(E,L,R,N);
-}
-function doleft_to_right(E, L, R, N){
   R = E.right;
-  L = E.left;
-
   if(ishas_add_child(L, N)){  
     sign = get_add_sign(L,N)
     p = N.par;
