@@ -5,6 +5,7 @@
 
 <script type="text/javascript" src="convert.js"></script>
 <script type="text/javascript" src="tree.js"></script>
+<script type="text/javascript" src="math.js"></script>
 <script type="text/javascript">
 
 blocks = [];
@@ -85,12 +86,55 @@ function find_near_block(x,y,excl)
   return best;
 }
 
+function node_to_block(n)
+{
+  for(i = 0; i < blocks.length; i++){
+    if(blocks[i].node == n)
+      return blocks[i];
+  }
+  return null;
+}
+
 function drag_finish(b){
+  if(b < 0) return;
+  
+  block = blocks[b];
+
+  /* did a block just hop onto the other side
+    of the '='? */  
+  n = block.node;
+  // walk up block b's tree until the = sign
+  while(n && n.par != null){
+    if(n.par.value == "="){
+      eq_block = node_to_block(n.par);
+      //compare coordinates
+      if(eq_block.x > block.x ) {
+        //block is now to the right
+        //console.log("= is left; " + eq_block.x + " vs " + (block.x+block.width));
+        if(origX > eq_block.x){
+          //console.log("moved right to left");
+          right_to_left(n.par, block.node);
+          render_from_tree();
+        }
+      } else if(eq_block.x < block.x) {
+        //block is now to the left
+        //console.log("= is right; " + eq_block.x + " vs " + (block.x+block.width));
+        if(origX < eq_block.x){
+          //console.log("moved left to right");
+          left_to_right(n.par, block.node);
+          render_from_tree();
+        }
+      }
+      break;
+    }
+    n = n.par;
+  }
+
   if(b != -1){
     //align block i to the nearest one
-    var near = find_near_block(blocks[b].x, blocks[b].y, b);
+    var near = find_near_block(block.x, block.y, b);
     if(near != -1){
-      blocks[b].y = blocks[near].y;
+      block.y = blocks[near].y;
     }
   }
   fix_x_overlaps();
@@ -209,11 +253,6 @@ to match any updates to the tree.
 */
 function render_from_tree()
 {
-  var post = infix_to_postfix(blocks);
- 
-  tree = new mathTree();
-  tree.buildTree(post, post.length-1);
-  
   var newnodes = tree.printTree();
   blocks = [];
   for(var idx = 0; idx < newnodes.length; idx++){
@@ -247,6 +286,10 @@ function i_to_p(input) {
       }
     }
     
+    var post = infix_to_postfix(blocks);
+    tree = new mathTree();
+    tree.buildTree(post, post.length-1);
+
     render_from_tree();
 }
 
@@ -288,7 +331,7 @@ pre { float: left;
 <div id="ret1"></div>
 
 <div>
-<canvas id="tutorial" width="1024" height="512"></canvas>
+<canvas id="tutorial" width="640" height="512"></canvas>
 </div>
 </body>
 </html>
