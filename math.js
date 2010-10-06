@@ -1,41 +1,3 @@
-function ishas_add_child(n,v){
-  if(n == v) return true;
-  if(n.left == v) return true;
-  if(n.right == v) return true;
-  if(n.left) {
-    v = n.left.value;
-    if(v == '+' || v == '-'){
-      if(ishaschild(n.left, v)) return true;
-    }
-  }
-  if(n.right) {
-    v = n.right.value;
-    if(v == '+' || v == '-'){
-      if(ishaschild(n.right, v)) return true;
-    } 
-  }
-  return false;
-}
-
-function get_add_sign(n,v){
-  if(n.left) {  
-    //left side always adds
-    v = n.left.value;
-    if(v == '+' || v == '-'){
-      return get_add_sign(n.left, v);
-    }      
-  } else if(n.right){
-    v = n.right.value;
-    if(v == '+' || v == '-'){
-      return get_add_sign(n.left, v);
-    } else if(v == '-') {
-      //right side of negative subtracts, flip sign
-      return get_add_sign(n.right, v)*-1;
-    }        
-  }
-  return 1;
-}
-
 
 ///////////////////////////////////////////////
 //move N to the right of the '=' sign E
@@ -44,57 +6,85 @@ function right_to_left(E, N){
 
 }
 
+function get_parent_sign(E,N)
+{ 
+  var val;
+  if(E == N) {
+    return 1;
+  }
+  if(E.right){
+    val = get_parent_sign(E.right, N);
+    if(E.value == "-"){
+      val *= -1;
+    }
+    if(val) return val;
+  }
+  if(E.left){
+    val = get_parent_sign(E.left, N);
+    if(val) return val;
+  }
+  
+  return 0;
+}
+
 ///////////////////////////////////////////////
 //move N to the left of the '=' sign E
 // 
-function left_to_right(E, N){
-  L = E.left;
-  R = E.right;
-  if(ishas_add_child(L, N)){  
-    sign = get_add_sign(L,N)
-    p = N.par;
-    pp = p.par;
-    //new parent
-    R_new = new node();
+function doswap(E, N, left_to_right){
+  ps = get_parent_sign(E,N);
+  grandparent = N.par.par;
 
-    if(sign > 0){
-      R_new.value = "-";
-    } else {
-      R_new.value = "+";
-    }        
-    R_new.right = N;
-    R_new.right.par = R_new;
-    R_new.left = R;
-    R_new.left.par = R_new;
+  //merge N's sibling
+  sibling = N.par.left;
+  if(sibling == N)
+    sibling = N.par.right;
+
+  if(grandparent && grandparent.left == N.par){
+    grandparent.left = sibling;
+    grandparent.right.par = grandparent;
+  } else if(grandparent && grandparent.right == N.par){
+    grandparent.right = sibling;
+    grandparent.right.par = grandparent;
+  } else {
+    //node hopping across is a child of the assignment operator
+    x = new node();
+    x.value = "0";
+    x.right = N.right;
+    if(x.right) x.right.par = x;
+    x.left = N.left;
+    if(x.left) x.right.par = x;
+    N.left = null;
+    N.right = null;
     
-    E.right = R_new;
-    E.right.par = E;
-    
-    //need to delete the old parent, merge in other child
-    if(p.left == N){
-      if(pp.right == p){
-        pp.right = p.right;   
-        pp.right.par = pp;
-      } else {
-        pp.left = p.right;
-        pp.left.par = pp;
-      }
-    } else if(p.right == N){
-      //todo double negatives etc
-      if(p.value == "-"){
-        p.left.value *= -1;
-      }
-      if(pp.right == p){
-        pp.right = p.left;
-        pp.right.par = pp;
-      } else {
-        pp.left = p.left;
-        pp.left.par = pp;      
-      }
+    if(E.right == N){
+      E.right = x;
+    } else if(E.left == N){
+      E.left = x;
     }
-    
-    delete p;
+  }
+
+  //create and attach new branch
+  newbranch = new node();
+  newbranch.value = ps > 0 ? "-" : "+"; //flip sign
+  if(left_to_right){
+    R = E.right;    
+  } else {
+    R = E.left;
   }
   
+  newbranch.left = R;
+  newbranch.left.par = newbranch;
+  newbranch.right = N;
+  newbranch.right.par = newbranch;
+  if(left_to_right) {
+    E.right = newbranch;
+    E.right.par = E;
+  } else {
+    E.left = newbranch;
+    E.left.par = E;
+  }  
 }
 ///////////////////////////////////////////////
+
+
+
