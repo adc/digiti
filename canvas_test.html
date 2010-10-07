@@ -301,8 +301,27 @@ function render_from_tree()
 
 function go_tree_mode()
 {
-  tree_mode ^= 1;
   render_from_tree();
+  var root = tree.root;
+  print_as_tree(root, -1, -2);
+}
+
+function print_as_tree(root, over, up)
+{
+  var root2 = root;
+  while(root2.left)
+  {
+    root2 = root2.left;
+	over++;
+  }
+  var newblock = node_to_block(root);
+  newblock.x += 3*over;
+  newblock.y += 50*up;
+
+  if(root.left)
+ 	print_as_tree(root.left, 0, up+1);
+  if(root.right)
+ 	print_as_tree(root.right, over+1, up+1);
 }
 
 function i_to_p(input) {
