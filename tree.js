@@ -6,6 +6,7 @@ function node()
 	this.right = null;
 	this.par = null;
 	this.value = null;
+	this.block = null;
 }
 
 function mathTree()
@@ -26,6 +27,21 @@ function print_infix(root)
 
 	if(root.right != null)
 		arr = arr.concat(print_infix(root.right));
+
+	if(root && root.par){
+	  p_grand = operators.indexOf(root.par.value);
+	  p_parent = operators.indexOf(root.value)
+
+    if(p_grand < p_parent){
+      //if the grandparent has a higher order of precedence 
+      //place the parent in parenthesis.
+      LP = new node(); RP = new node();
+      LP.value="("; RP.value=")";
+      n = [LP];
+      n = n.concat(arr);
+      arr = n.concat(RP);
+    }	
+	}
 	
 	return arr;
 }
@@ -50,5 +66,4 @@ function add(root, arr, curr)
 
 	return curr;
 }
-
 

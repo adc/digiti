@@ -18,7 +18,8 @@ function infix_to_postfix(blocks)
   
   for(var idx = 0; idx < blocks.length; idx++){
     token = blocks[idx].node.value;
-    
+//          alert("sup" + token);
+
     op = operators.indexOf(token);
     if(op != -1) {
       while(1) {
