@@ -39,7 +39,13 @@ function doswap(E, N, left_to_right){
   if(sibling == N)
     sibling = N.par.right;
 
-  if(grandparent && grandparent.left == N.par){
+  if(N.par.value == "-" && N == N.par.left){
+    //just replace with 0
+    N.par.left = new node();
+    N.par.left.value = "0";
+    N.par.left.par = N.par;
+  }
+  else if(grandparent && grandparent.left == N.par){
     grandparent.left = sibling;
     grandparent.left.par = grandparent;
   } else if(grandparent && grandparent.right == N.par){
