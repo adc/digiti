@@ -41,7 +41,7 @@ function doswap(E, N, left_to_right){
 
   if(grandparent && grandparent.left == N.par){
     grandparent.left = sibling;
-    grandparent.right.par = grandparent;
+    grandparent.left.par = grandparent;
   } else if(grandparent && grandparent.right == N.par){
     grandparent.right = sibling;
     grandparent.right.par = grandparent;
