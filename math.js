@@ -76,6 +76,17 @@ function doswap(E, N, left_to_right){
   newbranch.left.par = newbranch;
   newbranch.right = N;
   newbranch.right.par = newbranch;
+  
+  //before attaching check if it is of the form 0+X or X+0
+  //0+X identity
+  if(newbranch.value=="+"){
+    if(newbranch.right.value == "0"){
+      newbranch = newbranch.left;
+    } else if(newbranch.left.value == "0"){
+      newbranch = newbranch.right;
+    }
+  }
+  //and finally attach  
   if(left_to_right) {
     E.right = newbranch;
     E.right.par = E;
