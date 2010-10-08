@@ -18,7 +18,6 @@ function infix_to_postfix(blocks)
   
   for(var idx = 0; idx < blocks.length; idx++){
     token = blocks[idx].node.value;
-//          alert("sup" + token);
 
     op = operators.indexOf(token);
     if(op != -1) {
@@ -62,10 +61,6 @@ function infix_to_postfix(blocks)
     postfix.push(opstack.pop());
   }
 
-  //removes parentheses before building tree, but preserves order of operations
-  //for(var i=0; i<postfix.length; i++)
-	//if(postfix[i] == '(' || postfix[i] == ')')
-		//postfix.splice(i--,1);
   return postfix; 
 }
 
