@@ -332,7 +332,7 @@ function i_to_p(input) {
       
       if( isalnum(input[idx]) ) {
         var token = "";
-        while(idx < input.length){        
+        while(idx < input.length){       
           if(!isalnum(input[idx])) break;
           token += input[idx++];
         }
@@ -340,9 +340,10 @@ function i_to_p(input) {
       }
         
       op = operators.indexOf(input[idx]);
-      if(op != -1){
+      if(op != -1 || input[idx] == '(' || input[idx] == ')'){
         blocks.push(new Block(input[idx]));
       }
+
     }
     
     var post = infix_to_postfix(blocks);
