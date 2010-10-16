@@ -9,6 +9,8 @@ function right_to_left(E, N){
 function get_parent_sign(E,N)
 { 
   var val;
+  if(E.value == "*" && E.value != "-" && E.value != "=") return 0;
+  
   if(E == N) {
     return 1;
   }
@@ -32,6 +34,7 @@ function get_parent_sign(E,N)
 // 
 function doswap(E, N, left_to_right){
   ps = get_parent_sign(E,N);
+  if(ps == 0) return;
   grandparent = N.par.par;
 
   //merge N's sibling
