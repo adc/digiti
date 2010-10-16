@@ -1,3 +1,4 @@
+operators = ['^', '*', '/', '+', '-', '='];
 
 ///////////////////////////////////////////////
 //move N to the right of the '=' sign E
@@ -9,7 +10,8 @@ function right_to_left(E, N){
 function get_parent_sign(E,N)
 { 
   var val;
-  if(E.value == "*" && E.value != "-" && E.value != "=") return 0;
+  if(operators.indexOf(N.value) != -1) return 0;
+  if(operators.indexOf(E.value) != -1 && (E.value != "+" && E.value != "-" && E.value != "=")) return 0;
   
   if(E == N) {
     return 1;

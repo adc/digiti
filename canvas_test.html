@@ -145,7 +145,6 @@ function drag_finish(b){
         if(origX > eq_block.x){
           //console.log("moved right to left");
           doswap(n.par, block.node, 0);
-          render_from_tree();
         }
       } else if(eq_block.x < block.x) {
         //block is now to the left
@@ -153,7 +152,6 @@ function drag_finish(b){
         if(origX < eq_block.x){
           //console.log("moved left to right");
           doswap(n.par, block.node, 1);
-          render_from_tree();
         }
       }
       break;
@@ -161,7 +159,7 @@ function drag_finish(b){
     n = n.par;
   }
 
-
+  render_from_tree();
   if(!tree_mode){
     if(b != -1){
       //align block i to the nearest one
