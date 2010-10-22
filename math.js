@@ -1,3 +1,11 @@
+function delete_all(node)
+{
+	if(node.left)
+		delete_all(node.left);
+	if(node.right)
+		delete_all(node.right);
+	delete node;
+}
 
 //When a group moves across the equals, flip its sign
 function grab_opp_sign(value)
@@ -160,10 +168,9 @@ function clean()
 			{
 				var newn = nodes[i].par;
 				newn.value = 0;
-				if(newn.left)
-					delete newn.left;
-				if(newn.right)
-					delete.newn.right;
+				delete_all(newn.left);
+				delete_all(newn.right);
+
 				newn.left = newn.right = null;
 			}
 				
