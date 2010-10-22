@@ -145,7 +145,6 @@ function drag_finish(b){
         if(origX > eq_block.x){
           //console.log("moved right to left");
           doswap(n.par, block.node, 0);
-          render_from_tree();
         }
       } else if(eq_block.x < block.x) {
         //block is now to the left
@@ -153,7 +152,6 @@ function drag_finish(b){
         if(origX < eq_block.x){
           //console.log("moved left to right");
           doswap(n.par, block.node, 1);
-          render_from_tree();
         }
       }
       break;
@@ -161,7 +159,7 @@ function drag_finish(b){
     n = n.par;
   }
 
-
+  render_from_tree();
   if(!tree_mode){
     if(b != -1){
       //align block i to the nearest one
@@ -255,6 +253,31 @@ function ev_canvas(ev) {
   } else if (ev.type == "mouseup") {
       drag_finish(is_dragging);
       is_dragging = -1;
+  } 
+	/* multitouch events */
+	else if (ev.type == "touchmove") {
+	if (is_dragging != -1) {
+		deltaX = ev.touches[0].pageX - prevX;
+		deltaY = ev.touches[0].pageY - prevY;
+		blocks[is_dragging].x = deltaX + origX;
+		blocks[is_dragging].y = deltaY + origY;
+		//alert((deltaX+origY) + " " + (deltaY+origY))
+	}
+  } else if (ev.type == "touchstart") {
+    //check through and see if the click collides with a code block
+    //if it does, turnon dragging
+    is_dragging = find_block(ev.touches[0].pageX, ev.touches[0].pageY);
+    if (is_dragging != -1) {
+      ev.preventDefault();
+      //mouse down on block i, enable dragging
+      prevX = ev.touches[0].pageX;
+      prevY = ev.touches[0].pageY;
+      origX = blocks[is_dragging].x;
+      origY = blocks[is_dragging].y;
+    }
+  }  else if (ev.type == "touchend") {
+      drag_finish(is_dragging);
+      is_dragging = -1;
   }
 }
 
@@ -269,9 +292,13 @@ function init() {
     
     align_blocks();
 
-    canvas.addEventListener('mousedown', ev_canvas, false);
-    canvas.addEventListener('mousemove', ev_canvas, false);
-    canvas.addEventListener('mouseup',   ev_canvas, false);
+	canvas.ontouchstart = ev_canvas;
+	canvas.ontouchend = ev_canvas;
+	canvas.ontouchmove = ev_canvas;
+	canvas.onmousedown = ev_canvas;
+	canvas.onmousemove = ev_canvas;
+	canvas.onmouseup = ev_canvas;
+
     if (canvas.getContext) {
         ctx = canvas.getContext('2d');
         intervalId = setInterval(draw, 20);

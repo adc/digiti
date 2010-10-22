@@ -48,6 +48,9 @@ function print_infix(root)
 
 function add(root, arr, curr)
 {  
+	if(curr<0 || arr.length == 0)
+		return;
+
 	root.value = arr[curr].value;
 
 	root.right = new node();
