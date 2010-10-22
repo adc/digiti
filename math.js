@@ -125,14 +125,18 @@ function clean()
 	var nodes = tree.printTree();
 	while(i != nodes.length)
 	{
+	  //alert(i);
 		if(nodes[i].value == '0' && nodes[i].par.value != '=')
 		{
-			if(nodes[i].par.value == '+')
+		  parval = nodes[i].par.value;
+		  
+			if(parval == '+')
 			{
+			  //if its the left child thats a 0
 				if(nodes[i].par.left == nodes[i])
 				{
 					nodes[i].par.right.par = nodes[i].par.par;
-					if(nodes[i].par.par.left = nodes[i].par)
+					if(nodes[i].par.par.left == nodes[i].par)
 						nodes[i].par.par.left = nodes[i].par.right;
 					else
 						nodes[i].par.par.left = nodes[i].par.right;
@@ -140,31 +144,27 @@ function clean()
 				else
 				{
 					nodes[i].par.left.par = nodes[i].par.par;
-					if(nodes[i].par.par.left = nodes[i].par)
-						nodes[i].par.par.left = nodes[i].par.left;
+					if(nodes[i].par.par.right == nodes[i].par)
+						nodes[i].par.par.right = nodes[i].par.left;
 					else
 						nodes[i].par.par.left = nodes[i].par.left;
 				}
-			}
-
-			if(nodes[i].par.value == '-')
+			} else if(parval == '-')
 			{
 				if(nodes[i].par.right == nodes[i])
 				{
 					nodes[i].par.left.par = nodes[i].par.par;
-					if(nodes[i].par.par.left = nodes[i].par)
+					if(nodes[i].par.par.left == nodes[i].par)
 						nodes[i].par.par.left = nodes[i].par.left;
 					else
-						nodes[i].par.par.left = nodes[i].par.left;
+						nodes[i].par.par.right = nodes[i].par.left;
 				}
 				else
 				{
 					i++;
 					continue;
 				}
-			}
-
-			if(nodes[i].par.value == '*')
+			} else if(parval == '*')
 			{
 				var newn = nodes[i].par;
 				newn.value = 0;
@@ -172,9 +172,12 @@ function clean()
 				delete_all(newn.right);
 
 				newn.left = newn.right = null;
+			} else {
+			  i++;
+			  continue;
 			}
-				
-
+			
+			//return;	
 			nodes = tree.printTree();
 			i = 0;
 			continue;
