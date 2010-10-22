@@ -289,7 +289,7 @@ function ev_canvas(ev) {
   
   else if (ev.type == "touchmove") {
     if (is_dragging != -1) {
-      deltaX = ev.touches[0].pageX - prevX;
+        deltaX = ev.touches[0].pageX - prevX;
 		deltaY = ev.touches[0].pageY - prevY;
       //blocks[is_dragging].x = deltaX + origX;
       //blocks[is_dragging].y = deltaY + origY;
