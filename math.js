@@ -119,46 +119,47 @@ function swap_right(target, to_change)
 	clean();
 }
 
+function linkupsibling(n)
+{
+  //link n's sibling to n's grandparent
+  //thereby removing n and n's parent
+  //link up node n's sibling to n's parent
+  if(n.par.left == n)
+    sibling = n.par.right;
+  else
+    sibling = n.par.left;
+  
+  parent = n.par;
+  grandparent = parent.par;
+  
+  //link sibling with grandparent
+  sibling.par = grandparent;
+  if(grandparent.right == parent)
+    grandparent.right = sibling;
+  else
+    grandparent.left = sibling;
+}
+
 function clean()
 {
 	var i = 0;
 	var nodes = tree.printTree();
+//var hack = 0;
+
 	while(i != nodes.length)
 	{
 	  //alert(i);
-		if(nodes[i].value == '0' && nodes[i].par.value != '=')
+		if(nodes[i].value == '0')
 		{
 		  parval = nodes[i].par.value;
 		  
 			if(parval == '+')
 			{
-			  //if its the left child thats a 0
-				if(nodes[i].par.left == nodes[i])
-				{
-					nodes[i].par.right.par = nodes[i].par.par;
-					if(nodes[i].par.par.left == nodes[i].par)
-						nodes[i].par.par.left = nodes[i].par.right;
-					else
-						nodes[i].par.par.left = nodes[i].par.right;
-				}
-				else
-				{
-					nodes[i].par.left.par = nodes[i].par.par;
-					if(nodes[i].par.par.right == nodes[i].par)
-						nodes[i].par.par.right = nodes[i].par.left;
-					else
-						nodes[i].par.par.left = nodes[i].par.left;
-				}
+  			linkupsibling(nodes[i]);
 			} else if(parval == '-')
 			{
 				if(nodes[i].par.right == nodes[i])
-				{
-					nodes[i].par.left.par = nodes[i].par.par;
-					if(nodes[i].par.par.left == nodes[i].par)
-						nodes[i].par.par.left = nodes[i].par.left;
-					else
-						nodes[i].par.par.right = nodes[i].par.left;
-				}
+    			linkupsibling(nodes[i]);
 				else
 				{
 					i++;
@@ -176,17 +177,33 @@ function clean()
 			  i++;
 			  continue;
 			}
-			
-			//return;	
+      //made a change, restart			
 			nodes = tree.printTree();
 			i = 0;
 			continue;
+		} else if(nodes[i].value == '1'){
+		  parval = nodes[i].par.value;
+		  //multiplicative identities involving 1
+      if(parval == '*')
+			{
+		    linkupsibling(nodes[i]);
+			} else if(parval == '/')
+			{
+		    linkupsibling(nodes[i]);			  
+			} else {
+			  i++;
+			  continue;
+			}
+
+			nodes = tree.printTree();
+			i = 0;
+			continue;
+			
 		}
 		i++;
 	}
 }
 						
 		
-
 
 

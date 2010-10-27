@@ -13,3 +13,10 @@ a/c = 1/b
 b = 1/ a/ c
 b/a = 1/1/c <--- oops
 
+3) subtraction
+input: a-(b-c)=e
+
+drag the b over
+
+
+
