@@ -7,21 +7,61 @@ function delete_all(node)
 	delete node;
 }
 
-//When a group moves across the equals, flip its sign
-function grab_opp_sign(value)
+function get_real_value(node)
 {
-	if(value == '+')
-		return '-';
-	if(value == '-')
-		return '+';
-	if(value == '*')
-		return '/';
-	if(value == '/')
-		return '*';
+  a = node.value;
+  //b is the inverting operator
+  if(a == '+' || a == '-')
+    b = '-';
+  else if(a == '*' || a == '/')
+    b = '/';
+  else
+    return a; //unknown operator
+  
+  //b is the inverse of a.
+  prev = node;
+  n = node.par;
+  toggle = 1;
+  while(n.value != '=')
+  {    
+    //subtraction and division are left associative
+    if(n.value == b && n.right == prev)
+      toggle *= -1;
+    else if(n.value != a) //have an unknown operator inbetween
+      break;
+    prev = n;
+    n = n.par;  
+  }
+  
+  if(toggle < 0){
+    if(a == '*') return '/';
+    if(a == '/') return '*';
+    if(a == '+') return '-';
+    if(a == '-') return '+';
+  }
+  return a;
 }
 
-function grab_left_sign(value)
+//When a group moves across the equals, flip its sign
+function grab_opp_sign(node)
 {
+  //start from the node and work up to the '=' operator
+  value = get_real_value(node);
+  
+  if(value == '+')
+  		return '-';
+  if(value == '-')
+  		return '+';
+  if(value == '*')
+  		return '/';
+  if(value == '/')
+	  return '*';
+}
+
+function grab_left_sign(node)
+{  
+  value = get_real_value(node);
+
 	if(value == '+')
 		return '-';
 	if(value == '-')
@@ -66,13 +106,13 @@ function swap_left(target, to_change)
 		to_change.left.value = '0';
 	}
 	else if(to_change.left == target) {
-		newnode.value = grab_left_sign(to_change.value);
+		newnode.value = grab_left_sign(to_change);
 		to_change.left = new node();
 		to_change.left.value = moved(to_change.value);
 		to_change.left.par = to_change;
 	}
 	else {
-	    newnode.value = grab_opp_sign(to_change.value);
+	  newnode.value = grab_opp_sign(to_change);
 		to_change.right = new node();
 		to_change.right.value = moved(to_change.value);
 		to_change.right.par = to_change;
@@ -104,13 +144,13 @@ function swap_right(target, to_change)
 		to_change.right.value = '0';
 	}
 	else if(to_change.left == target) {
-		newnode.value = grab_left_sign(to_change.value);
+		newnode.value = grab_left_sign(to_change);
 		to_change.left = new node();
 		to_change.left.value = moved(to_change.value);
 		to_change.left.par = to_change;
 	}
 	else {
-	    newnode.value = grab_opp_sign(to_change.value);
+	  newnode.value = grab_opp_sign(to_change);
 		to_change.right = new node();
 		to_change.right.value = moved(to_change.value);
 		to_change.right.par = to_change;
@@ -144,7 +184,6 @@ function clean()
 {
 	var i = 0;
 	var nodes = tree.printTree();
-//var hack = 0;
 
 	while(i != nodes.length)
 	{
@@ -189,7 +228,14 @@ function clean()
 		    linkupsibling(nodes[i]);
 			} else if(parval == '/')
 			{
-		    linkupsibling(nodes[i]);			  
+			  //dont link up 1/a, only a/1 or 1/1
+			  //note that 1/(1/x) wont be simplified to x
+			  if(nodes[i].par.right == nodes[i] || nodes[i].par.right.value == '1' )
+  		    linkupsibling(nodes[i]);	
+  		  else {
+  		    i++;
+  		    continue;
+  		  }		  
 			} else {
 			  i++;
 			  continue;
@@ -197,13 +243,8 @@ function clean()
 
 			nodes = tree.printTree();
 			i = 0;
-			continue;
-			
+			continue;			
 		}
 		i++;
 	}
 }
-						
-		
-
-
