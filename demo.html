@@ -109,14 +109,30 @@ function drag_finish(b, target, to_change){
   var equals = tree.root;
 
   //Did it go left of equals?
-  if(origX[0] < node_to_block(equals).x && node_to_block(block).x > node_to_block(equals).x)
-	swap_left(target, to_change);
-	
+  if(origX[0] < node_to_block(equals).x && node_to_block(block).x > node_to_block(equals).x) {
+  	swap_left(target, to_change);
+	}
   //Or did it go right?
-  else if(origX[0] > node_to_block(equals).x && node_to_block(block).x < node_to_block(equals).x)
-	swap_right(target, to_change);
+  else if(origX[0] > node_to_block(equals).x && node_to_block(block).x < node_to_block(equals).x) {
+  	swap_right(target, to_change);
+	}
+	else {
+    //find the block with the most overlap
+    overlapper = get_most_overlap(blocks[b]);
+    
+    if(overlapper)
+    {
+      //number number overlaps imply evaluation
+      if(!did_eval(overlapper.node, blocks[b].node))
+      {
+        try_swap(overlapper.node, blocks[b].node);
+      }
+      //todo: more gestures for simplifications etc
+
+    }
+  }
 	
-   render_from_tree();
+  render_from_tree();
 
   if(b != -1){
     //align block i to the nearest one
@@ -126,6 +142,36 @@ function drag_finish(b, target, to_change){
     }
   }
   fix_x_overlaps();
+}
+
+function min(a,b)
+{
+  return (a) <= (b) ? (a) : (b);
+}
+
+function get_most_overlap(b)
+{
+  best_overlap = 0;
+  best_block = null;
+  
+  for(var i = 0; i < blocks.length; i++) {
+    a = blocks[i];
+    if(a == b) continue;
+    width = 0;
+    height = 0;
+    if(a.x + a.width > b.x && a.x < b.x + b.width)
+      width = min(a.x+a.width - b.x, b.x+b.width - a.x); 
+    if(a.y + a.height >= b.height && a.y < b.y + b.height)
+      height = min(a.y+a.height - b.y, b.y+b.height - a.y);
+    if(width > 0 && height > 0){
+      if(width*height > best_overlap){
+        best_overlap = width*height;
+        best_block = a;
+      }
+    }    
+  }
+  
+  return best_block;
 }
 
 function is_overlapping(block_idx) {
@@ -182,6 +228,11 @@ function find_block(x,y) {
   }
 
   return -1;
+}
+
+function ev_keyboard(ev)
+{
+
 }
 
 function ev_canvas(ev) {
@@ -357,9 +408,13 @@ function init() {
     canvas.onmouseup = ev_canvas;
     canvas.onmousemove = ev_canvas;
 
-	canvas.ontouchstart = ev_canvas;
+	  canvas.ontouchstart = ev_canvas;
     canvas.ontouchend = ev_canvas;
     canvas.ontouchmove = ev_canvas;
+
+
+    document.onkeydown = ev_keyboard;
+    document.onkeyup = ev_keyboard;
 	
     if (canvas.getContext) {
         ctx = canvas.getContext('2d');
