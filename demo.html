@@ -27,8 +27,6 @@ var target;
 var to_change;
 var possib;
 
-var tree_mode=0;
-
 function Block(text) {
   this.x = 0;
   this.y = 0;
@@ -52,41 +50,14 @@ function clear() {
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 }
 
-function g2log(val)
-{
-  var x = 2;
-  while(val >= x){
-    x *= 2;
-  }
-  return x;
-}
-function tree_align(node, value) {
-  if(!node) return 0;
-  block = node_to_block(node);
-  block.x = block.width*value*0.7;
-  block.y = block.height*(g2log(value))*0.2;
-  lefties = tree_align(node.left, value*2);
-  righties = tree_align(node.right, value*2+1);
-/*  if(node.value == "c" || node.value == "d"){
-    alert(depth + " " + lefties + " " + righties + " " + value);
-  }
-*/  
-  return lefties+righties+1;
-}
-
 function align_blocks() {
   var nextX = WIDTH/2 - (blocks.length/2+1)*50;
   var nextY = HEIGHT/2 - 50;
   
-  if(tree_mode){
-    root = tree.root;
-    tree_align(root, 1);
-  } else {
-    for (var i = 0; i < blocks.length; i++) {
-      blocks[i].y = nextY;
-      blocks[i].x = nextX;
-      nextX += blocks[i].width + 10;
-    }
+  for (var i = 0; i < blocks.length; i++) {
+    blocks[i].y = nextY;
+    blocks[i].x = nextX;
+    nextX += blocks[i].width + 10;
   }
 }
 
@@ -147,16 +118,14 @@ function drag_finish(b, target, to_change){
 	
    render_from_tree();
 
-  if(!tree_mode){
-    if(b != -1){
-      //align block i to the nearest one
-      var near = find_near_block(block.x, block.y, b);
-      if(near != -1){
-          block.y = blocks[near].y;
-      }
+  if(b != -1){
+    //align block i to the nearest one
+    var near = find_near_block(block.x, block.y, b);
+    if(near != -1){
+        block.y = blocks[near].y;
     }
-    fix_x_overlaps();
   }
+  fix_x_overlaps();
 }
 
 function is_overlapping(block_idx) {
