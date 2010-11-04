@@ -6,6 +6,7 @@
 <script type="text/javascript" src="convert.js"></script>
 <script type="text/javascript" src="tree.js"></script>
 <script type="text/javascript" src="math.js"></script>
+<script type="text/javascript" src="merge.js"></script>
 <script type="text/javascript">
 
 blocks = [];
@@ -18,14 +19,28 @@ var MAXX = 0;
 var MAXY = 0;
 
 var moving_blocks = [];
+var moving_blocks2 = [];
 var is_dragging = -1;
+var is_dragging2 = -1;
 var prevX = -1;
 var prevY = -1;
+var prevX2 = 0;
+var prevY2 = 0;
+
 var origX=[], origY=[];
+var origX2 =[], origY2 =[];
 
 var target;
 var to_change;
 var possib;
+var target2;
+var to_change2;
+var possib2;
+
+var multitouch = 0;
+var merging = 0;
+
+var tree_mode=0;
 
 function Block(text) {
   this.x = 0;
@@ -50,14 +65,41 @@ function clear() {
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 }
 
+function g2log(val)
+{
+  var x = 2;
+  while(val >= x){
+    x *= 2;
+  }
+  return x;
+}
+function tree_align(node, value) {
+  if(!node) return 0;
+  block = node_to_block(node);
+  block.x = block.width*value*0.7;
+  block.y = block.height*(g2log(value))*0.2;
+  lefties = tree_align(node.left, value*2);
+  righties = tree_align(node.right, value*2+1);
+/*  if(node.value == "c" || node.value == "d"){
+    alert(depth + " " + lefties + " " + righties + " " + value);
+  }
+*/  
+  return lefties+righties+1;
+}
+
 function align_blocks() {
   var nextX = WIDTH/2 - (blocks.length/2+1)*50;
   var nextY = HEIGHT/2 - 50;
   
-  for (var i = 0; i < blocks.length; i++) {
-    blocks[i].y = nextY;
-    blocks[i].x = nextX;
-    nextX += blocks[i].width + 10;
+  if(tree_mode){
+    root = tree.root;
+    tree_align(root, 1);
+  } else {
+    for (var i = 0; i < blocks.length; i++) {
+      blocks[i].y = nextY;
+      blocks[i].x = nextX;
+      nextX += blocks[i].width + 10;
+    }
   }
 }
 
@@ -109,69 +151,25 @@ function drag_finish(b, target, to_change){
   var equals = tree.root;
 
   //Did it go left of equals?
-  if(origX[0] < node_to_block(equals).x && node_to_block(block).x > node_to_block(equals).x) {
-  	swap_left(target, to_change);
-	}
-  //Or did it go right?
-  else if(origX[0] > node_to_block(equals).x && node_to_block(block).x < node_to_block(equals).x) {
-  	swap_right(target, to_change);
-	}
-	else {
-    //find the block with the most overlap
-    overlapper = get_most_overlap(blocks[b]);
-    
-    if(overlapper)
-    {
-      //number number overlaps imply evaluation
-      if(!did_eval(overlapper.node, blocks[b].node))
-      {
-        try_swap(overlapper.node, blocks[b].node);
-      }
-      //todo: more gestures for simplifications etc
-
-    }
-  }
+  if(origX[0] < node_to_block(equals).x && node_to_block(block).x > node_to_block(equals).x)
+	swap_left(target, to_change);
 	
-  render_from_tree();
+  //Or did it go right?
+  else if(origX[0] > node_to_block(equals).x && node_to_block(block).x < node_to_block(equals).x)
+	swap_right(target, to_change);
+	
+   render_from_tree();
 
-  if(b != -1){
-    //align block i to the nearest one
-    var near = find_near_block(block.x, block.y, b);
-    if(near != -1){
-        block.y = blocks[near].y;
-    }
-  }
-  fix_x_overlaps();
-}
-
-function min(a,b)
-{
-  return (a) <= (b) ? (a) : (b);
-}
-
-function get_most_overlap(b)
-{
-  best_overlap = 0;
-  best_block = null;
-  
-  for(var i = 0; i < blocks.length; i++) {
-    a = blocks[i];
-    if(a == b) continue;
-    width = 0;
-    height = 0;
-    if(a.x + a.width > b.x && a.x < b.x + b.width)
-      width = min(a.x+a.width - b.x, b.x+b.width - a.x); 
-    if(a.y + a.height >= b.height && a.y < b.y + b.height)
-      height = min(a.y+a.height - b.y, b.y+b.height - a.y);
-    if(width > 0 && height > 0){
-      if(width*height > best_overlap){
-        best_overlap = width*height;
-        best_block = a;
+  if(!tree_mode){
+    if(b != -1){
+      //align block i to the nearest one
+      var near = find_near_block(block.x, block.y, b);
+      if(near != -1){
+          block.y = blocks[near].y;
       }
-    }    
+    }
+    fix_x_overlaps();
   }
-  
-  return best_block;
 }
 
 function is_overlapping(block_idx) {
@@ -230,10 +228,37 @@ function find_block(x,y) {
   return -1;
 }
 
-function ev_keyboard(ev)
+function get_target(node)
 {
-
+	target = blocks[is_dragging].node;
+ 	to_change = target.par;
+	possib = to_change;
+	
+    while(possib != node)
+    {
+		if(possib.value != to_change.value)
+	  		to_change = possib;
+	  	possib = possib.par;
+  	}
+	while(target.par != to_change)
+		  target = target.par;
 }
+
+function get_target2(node)
+{
+	target2 = blocks[is_dragging2].node;
+ 	to_change2 = target2.par;
+	possib2 = to_change2;
+	
+    while(possib2 != node)
+    {
+		if(possib2.value != to_change2.value)
+	  		to_change2 = possib2;
+	  	possib2 = possib2.par;
+  	}
+	while(target2.par != to_change2)
+		  target2 = target2.par;
+}	
 
 function ev_canvas(ev) {
   
@@ -241,9 +266,7 @@ function ev_canvas(ev) {
     if (is_dragging != -1) {
       deltaX = ev.layerX - prevX;
       deltaY = ev.layerY - prevY;
-      //blocks[is_dragging].x = deltaX + origX;
-      //blocks[is_dragging].y = deltaY + origY;
-      //alert((deltaX+origY) + " " + (deltaY+origY))
+
 	  for(var i=0; i<moving_blocks.length; i++)
 	  {
 		moving_blocks[i].x = deltaX + origX[i];
@@ -267,22 +290,7 @@ function ev_canvas(ev) {
       prevX = ev.layerX;
       prevY = ev.layerY;
 	  
-	  target = blocks[is_dragging].node;
-	  to_change = target.par;
-	  possib = to_change;
-		
-	  while(possib.value != '=')
-	  {
-		  if(possib.value != to_change.value)
-		  	  to_change = possib;
-		  possib = possib.par;
-	  }
-	  while(target.par != to_change)
-		  target = target.par;
-		  
-	  //alert("target:"+target.value + " tochange:"+to_change.value);
-		  
-	  moving_blocks = [];
+	  get_target(tree.root); 
 	  grab_moving_blocks(target);
 	  
 	  for(var i=0; i<moving_blocks.length; i++) {
@@ -303,22 +311,26 @@ function ev_canvas(ev) {
 
       drag_finish(is_dragging, target, to_change);
       is_dragging = -1;
-	  
-	  //alert("change " + to_change.value + ", move " + target.value);
   }
   
   else if (ev.type == "touchmove") {
+
+    if(multitouch)
+	{
+		multitouchmove(ev);
+		return;
+	}
+
     if (is_dragging != -1) {
-        deltaX = ev.touches[0].pageX - prevX;
-		deltaY = ev.touches[0].pageY - prevY;
-      //blocks[is_dragging].x = deltaX + origX;
-      //blocks[is_dragging].y = deltaY + origY;
-      //alert((deltaX+origY) + " " + (deltaY+origY))
+        deltaX = ev.touches[ev.touches.length-1].pageX - prevX;
+		deltaY = ev.touches[ev.touches.length-1].pageY - prevY;
+
 	  for(var i=0; i<moving_blocks.length; i++)
 	  {
 		moving_blocks[i].x = deltaX + origX[i];
 		moving_blocks[i].y = deltaY + origY[i];
 	  }
+
     } else {
 
     }
@@ -327,47 +339,49 @@ function ev_canvas(ev) {
   else if (ev.type == "touchstart") {
     //check through and see if the click collides with a code block
     //if it does, turnon dragging
+
+	//If it's the second click, then try to do a multitouch event.
+	//If a block wasn't clicked the second time don't do anything
+	if(ev.touches.length > 1)
+	{
+		is_dragging2 = find_block(ev.touches[0].pageX, ev.touches[0].pageY);
+
+		if(is_dragging2 != -1 && is_dragging != -1)
+			multitouchstart(ev);		
+		return;
+	}
 	
 	origX = [];
 	origY = [];
 	moving_blocks = [];
 	  
-    is_dragging = find_block(ev.touches[0].pageX, ev.touches[0].pageY)
+    is_dragging = find_block(ev.touches[ev.touches.length-1].pageX, ev.touches[ev.touches.length-1].pageY);
     if (is_dragging != -1) {
-      //mouse down on block i, enable dragging
-	  
-	  ev.preventDefault();	
+      //mouse down on block i, enable dragging	
 
-      prevX = ev.touches[0].pageX;
-      prevY = ev.touches[0].pageY;
+	  ev.preventDefault();
+      prevX = ev.touches[ev.touches.length-1].pageX;
+      prevY = ev.touches[ev.touches.length-1].pageY;
 	  
-	  target = blocks[is_dragging].node;
-	  to_change = target.par;
-	  possib = to_change;
-		
-	  while(possib.value != '=')
-	  {
-		  if(possib.value != to_change.value)
-		  	  to_change = possib;
-		  possib = possib.par;
-	  }
-	  while(target.par != to_change)
-		  target = target.par;
-		  
-	  //alert("target:"+target.value + " tochange:"+to_change.value);
-		  
-	  moving_blocks = [];
+	  get_target(tree.root);
 	  grab_moving_blocks(target);
 	  
 	  for(var i=0; i<moving_blocks.length; i++) {
-      origX.push(moving_blocks[i].x);
-      origY.push(moving_blocks[i].y);
+      	origX.push(moving_blocks[i].x);
+      	origY.push(moving_blocks[i].y);
 	  }
     }
   }
   
   else if (ev.type == "touchend") {
   
+		if(multitouch)
+		{
+			multitouchend(ev);
+			multitouch = 0;
+			return;
+		}	
+
 		if(is_dragging == -1)
 			return;
 		if(blocks[is_dragging].node.value == '=' || blocks[is_dragging].node.value == '0')
@@ -379,10 +393,88 @@ function ev_canvas(ev) {
 
       drag_finish(is_dragging, target, to_change);
       is_dragging = -1;
-	  
-	  //alert("change " + to_change.value + ", move " + target.value);
   }
 }
+
+function multitouchstart(ev)
+{
+	multitouch = 1;
+
+	origX2 = [];
+	origY2 = [];
+	moving_blocks2 = [];
+
+	if (is_dragging2 != -1) {
+
+        prevX2 = ev.touches[0].pageX;
+        prevY2 = ev.touches[0].pageY;
+
+		get_target2(tree.root);
+
+		if(target == target2)
+		{
+			get_target(to_change);
+			get_target2(to_change2);
+
+			moving_blocks = [];
+			grab_moving_blocks(target);
+
+			origX = [];
+			for(var i=0; i<moving_blocks.length; i++) {
+      			origX.push(moving_blocks[i].x);
+      			origY.push(moving_blocks[i].y);
+			}
+		}
+
+		moving_blocks2 = [];
+		grab_moving_blocks2(target2);
+
+		for(var i=0; i<moving_blocks2.length; i++) {
+      		origX2.push(moving_blocks2[i].x);
+      		origY2.push(moving_blocks2[i].y);
+	    }
+	}
+}
+
+function multitouchmove(ev)
+{
+	if (is_dragging2 != -1) {
+
+		deltaX = ev.touches[1].pageX - prevX;
+		deltaY = ev.touches[1].pageY - prevY;
+
+		deltaX2 = ev.touches[0].pageX - prevX2;
+		deltaY2 = ev.touches[0].pageY - prevY2;
+
+		for(var i=0; i<moving_blocks.length; i++) {
+			moving_blocks[i].x = deltaX + origX[i];
+			moving_blocks[i].y = deltaY + origY[i];
+		}
+
+		for(var i=0; i<moving_blocks2.length; i++) {
+			moving_blocks2[i].x = deltaX2 + origX2[i];
+			moving_blocks2[i].y = deltaY2 + origY2[i];
+		}
+
+		if(origX[0] > origX2[0] && (moving_blocks[0].x - origX[0]) < 30 && (moving_blocks2[0].x - origX2[0]) > 30 )
+			merging = 1;
+		else if(origX2[0] > origX[0] && (moving_blocks2[0].x - origX2[0]) < 30 && (moving_blocks[0].x - origX[0]) > 30 )			
+			merging = 1;
+	}
+
+}
+
+function multitouchend(ev)
+{
+	if(merging)
+		mergeeq(blocks[is_dragging].node, blocks[is_dragging2].node);
+	merging =0;
+
+	is_dragging = -1;
+	is_dragging2 = -1;
+	render_from_tree();
+}
+
 
 function grab_moving_blocks(target)
 {
@@ -391,6 +483,15 @@ function grab_moving_blocks(target)
 		grab_moving_blocks(target.left);
 	if(target.right)
 		grab_moving_blocks(target.right);
+}
+
+function grab_moving_blocks2(target2)
+{
+	moving_blocks2.push(node_to_block(target2));
+	if(target2.left)
+		grab_moving_blocks2(target2.left);
+	if(target2.right)
+		grab_moving_blocks2(target2.right);
 }
 
 function init() {
@@ -408,13 +509,9 @@ function init() {
     canvas.onmouseup = ev_canvas;
     canvas.onmousemove = ev_canvas;
 
-	  canvas.ontouchstart = ev_canvas;
+	canvas.ontouchstart = ev_canvas;
     canvas.ontouchend = ev_canvas;
     canvas.ontouchmove = ev_canvas;
-
-
-    document.onkeydown = ev_keyboard;
-    document.onkeyup = ev_keyboard;
 	
     if (canvas.getContext) {
         ctx = canvas.getContext('2d');
@@ -538,6 +635,7 @@ pre { float: left;
       border: 1px dashed #666; padding: 15px 20px; margin: 0 0 10px 0; 
 }
 </style>
+
 </head>
 
 <body onload="init();">
@@ -549,10 +647,20 @@ pre { float: left;
 <textarea name="input1"></textarea><br />
 <input type="button" value="Submit" onclick="javascript:i_to_p(document.text.input1.value);" />
 <input id="Treemodebutton" type="button" value="Treemode" onclick="javascript:go_tree_mode();" />
+
+<br />
+<br/>
+<input id="f1" type="text" />
+<input id="f2" type="text" />
+<input type="button" value="Merge" onclick="javascript:startmerge(document.text.f1.value, document.text.f2.value)">
+
 <div>
-<canvas id="tutorial" width="1000" height="240"></canvas>
+<canvas id="tutorial" width="640" height="320"></canvas>
 </div>
 <div id="ret1"></div>
+
+<div id="firsttouch"></div>
+<div id="secondtouch"></div>
 </div>
 </body>
 </html>
