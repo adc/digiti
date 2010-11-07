@@ -1,3 +1,13 @@
+function startmerge(i1, i2)
+{
+  var a = blocks[i1].node;
+  var b = blocks[i2].node;
+    
+  mergeeq(a,b);
+      
+  render_from_tree();
+}
+
 function mergeeq(node1, node2)
 {
 	var LCA = find_LCA(node1, node2);
@@ -19,6 +29,8 @@ function mergeeq(node1, node2)
 	}
 	
 	//Creates and solves eval string
+	if(!arr[highest_ok])
+	  return;
 	var str = arr[highest_ok].value;
 	if(str[0] == "/")
 		str = "1" + str;
