@@ -36,6 +36,8 @@ var possib;
 var target2;
 var to_change2;
 var possib2;
+var firsttouch;
+var secondtouch;
 
 var multitouch = 0;
 var merging = 0;
@@ -302,148 +304,162 @@ function ev_canvas(ev) {
     is_dragging = -1;
   }  
   else if (ev.type == "touchmove") {
-    if(multitouch) {
-		  multitouchmove(ev);
-		  return;
-  	}
+    if(multitouch)
+	{
+		multitouchmove(ev);
+		return;
+	}
+ 
     if (is_dragging != -1) {
-      deltaX = ev.touches[ev.touches.length-1].pageX - prevX;
-	    deltaY = ev.touches[ev.touches.length-1].pageY - prevY;
-      for(var i=0; i<moving_blocks.length; i++) {
-	      moving_blocks[i].x = deltaX + origX[i];
-	      moving_blocks[i].y = deltaY + origY[i];
-      }
-    }
-  }  
+        deltaX = ev.touches[0].pageX - prevX;
+		deltaY = ev.touches[0].pageY - prevY;
+ 
+	  for(var i=0; i<moving_blocks.length; i++)
+	  {
+		moving_blocks[i].x = deltaX + origX[i];
+		moving_blocks[i].y = deltaY + origY[i];
+	  }
+    }  else {}
+  } 
   else if (ev.type == "touchstart") {
     //check through and see if the click collides with a code block
     //if it does, turnon dragging
-
-	  //If it's the second click, then try to do a multitouch event.
-	  //If a block wasn't clicked the second time don't do anything
-	  if(ev.touches.length > 1) {
-		  is_dragging2 = find_block(ev.touches[0].pageX, ev.touches[0].pageY);
-
-		  if(is_dragging2 != -1 && is_dragging != -1)
-			  multitouchstart(ev);		
-		  return;
-	  }
-
-	  origX = [];
-	  origY = [];
-	  moving_blocks = [];
+ 
+	//If it's the second click, then try to do a multitouch event.
+	//If a block wasn't clicked the second time don't do anything
+	if(ev.touches.length > 1) {
+		is_dragging2 = find_block(ev.touches[0].pageX, ev.touches[0].pageY);
+		if(is_dragging == is_dragging2) {
+			is_dragging2 = find_block(ev.touches[1].pageX, ev.touches[1].pageY);
+			firsttouch = 0;
+			secondtouch = 1;
+		}
+		else {
+			firsttouch = 1;
+			secondtouch = 0;
+		}
+ 
+		if(is_dragging != -1 && is_dragging2 != -1)
+			multitouchstart(ev);		
+		return;
+	}
+	
+	origX = [];
+	origY = [];
+	moving_blocks = [];
 	  
-    is_dragging = find_block(ev.touches[ev.touches.length-1].pageX, ev.touches[ev.touches.length-1].pageY);
+    is_dragging = find_block(ev.touches[0].pageX, ev.touches[0].pageY);
     if (is_dragging != -1) {
       //mouse down on block i, enable dragging	
-  	  ev.preventDefault();
-      prevX = ev.touches[ev.touches.length-1].pageX;
-      prevY = ev.touches[ev.touches.length-1].pageY;
-
-	    get_target(tree.root);
-	    grab_moving_blocks(target);
+ 
+	  ev.preventDefault();
+      prevX = ev.touches[0].pageX;
+      prevY = ev.touches[0].pageY;
 	  
-	    for(var i=0; i<moving_blocks.length; i++) {
-        	origX.push(moving_blocks[i].x);
-        	origY.push(moving_blocks[i].y);
-	    }
+	  get_target(tree.root);
+	  grab_moving_blocks(target);
+	  
+	  for(var i=0; i<moving_blocks.length; i++) {
+      	origX.push(moving_blocks[i].x);
+      	origY.push(moving_blocks[i].y);
+	  }
     }
-  } else if (ev.type == "touchend") {
-		if(multitouch) {
-			multitouchend(ev);
-			multitouch = 0;
+  }
+ 
+  else if (ev.type == "touchend") {
+	if(is_dragging == -1)
 			return;
-		}
-		if(is_dragging == -1)
-			return;
-		if(blocks[is_dragging].node.value == '=' || blocks[is_dragging].node.value == '0')
-		{
+		if(blocks[is_dragging].node.value == '=') {
 			render_from_tree();
 			is_dragging = -1;
 			return;
 		}
-
-    drag_finish(is_dragging, target, to_change);
-    is_dragging = -1;
+		if(merging) {
+			mergeeq(blocks[is_dragging].node, blocks[is_dragging2].node);
+			merging = 0;
+		}	
+ 
+      drag_finish(is_dragging, target, to_change);
+	  is_dragging = -1;
+      is_dragging2 = -1;
+	  multitouch = 0;
+	  firsttouch = 0;
+	  secondtouch = 0;
   }
 }
 
 function multitouchstart(ev)
 {
 	multitouch = 1;
+	ev.preventDefault();
+ 
+	prevX2 = ev.touches[secondtouch].pageX;
+	prevY2 = ev.touches[secondtouch].pageY;
+
+	get_target2(tree.root);
+	if(target == target2) {
+		while(target == target2) {
+			get_target(to_change);
+			get_target2(to_change2);
+ 
+			moving_blocks = [];
+			grab_moving_blocks(target);
+		}
+		
+		origX = [];
+		prevX = ev.touches[firsttouch].pageX;
+		prevY = ev.touches[firsttouch].pageY;
+		for(var i=0; i<moving_blocks.length; i++) {
+			origX.push(moving_blocks[i].x);
+			origY.push(moving_blocks[i].y);
+		}
+	}
+ 		
+	moving_blocks2 = [];
+	grab_moving_blocks2(target2);
 
 	origX2 = [];
 	origY2 = [];
-	moving_blocks2 = [];
-
-	if (is_dragging2 != -1) {
-    prevX2 = ev.touches[0].pageX;
-    prevY2 = ev.touches[0].pageY;
-
-		get_target2(tree.root);
-
-		if(target == target2)
-		{
-			get_target(to_change);
-			get_target2(to_change2);
-
-			moving_blocks = [];
-			grab_moving_blocks(target);
-
-			origX = [];
-			for(var i=0; i<moving_blocks.length; i++) {
-      			origX.push(moving_blocks[i].x);
-      			origY.push(moving_blocks[i].y);
-			}
-		}
-
-		moving_blocks2 = [];
-		grab_moving_blocks2(target2);
-
-		for(var i=0; i<moving_blocks2.length; i++) {
-      		origX2.push(moving_blocks2[i].x);
-      		origY2.push(moving_blocks2[i].y);
-	    }
+	for(var i=0; i<moving_blocks2.length; i++) {
+		origX2.push(moving_blocks2[i].x);
+		origY2.push(moving_blocks2[i].y);
 	}
 }
 
 function multitouchmove(ev)
 {
-	if (is_dragging2 != -1) {
+	deltaX = ev.touches[firsttouch].pageX - prevX;
+    deltaY = ev.touches[firsttouch].pageY - prevY;
 
-		deltaX = ev.touches[1].pageX - prevX;
-		deltaY = ev.touches[1].pageY - prevY;
+	deltaX2 = ev.touches[secondtouch].pageX - prevX2;
+	deltaY2 = ev.touches[secondtouch].pageY - prevY2;
 
-		deltaX2 = ev.touches[0].pageX - prevX2;
-		deltaY2 = ev.touches[0].pageY - prevY2;
-
-		for(var i=0; i<moving_blocks.length; i++) {
-			moving_blocks[i].x = deltaX + origX[i];
-			moving_blocks[i].y = deltaY + origY[i];
-		}
-
-		for(var i=0; i<moving_blocks2.length; i++) {
-			moving_blocks2[i].x = deltaX2 + origX2[i];
-			moving_blocks2[i].y = deltaY2 + origY2[i];
-		}
-
-		if(origX[0] > origX2[0] && (moving_blocks[0].x - origX[0]) < 30 && (moving_blocks2[0].x - origX2[0]) > 30 )
-			merging = 1;
-		else if(origX2[0] > origX[0] && (moving_blocks2[0].x - origX2[0]) < 30 && (moving_blocks[0].x - origX[0]) > 30 )			
-			merging = 1;
+	for(var i=0; i<moving_blocks.length; i++) {
+		moving_blocks[i].x = deltaX + origX[i];
+		moving_blocks[i].y = deltaY + origY[i];
 	}
 
+	for(var i=0; i<moving_blocks2.length; i++) {
+		moving_blocks2[i].x = deltaX2 + origX2[i];
+		moving_blocks2[i].y = deltaY2 + origY2[i];
+	}
+
+	//Make fail if on opposite sides of the = sign
+	if((is_dragging < blocks.indexOf(node_to_block(tree.root)) && is_dragging2 < blocks.indexOf(node_to_block(tree.root))) || (is_dragging > blocks.indexOf(node_to_block(tree.root)) && is_dragging2 > blocks.indexOf(node_to_block(tree.root))))
+	{
+		if(origX[0] > origX2[0] && (moving_blocks[0].x - origX[0]) < 30 && (moving_blocks2[0].x - origX2[0]) > 30 )
+			merging = 1;
+		else if(origX2[0] > origX[0] && (moving_blocks2[0].x - origX2[0]) < 30 && (moving_blocks[0].x - origX[0]) > 30 )
+			merging = 1;
+		else
+			merging = 0;
+	}
+	else
+		merging = 0;
 }
 
 function multitouchend(ev)
 {
-	if(merging)
-		mergeeq(blocks[is_dragging].node, blocks[is_dragging2].node);
-	merging =0;
-
-	is_dragging = -1;
-	is_dragging2 = -1;
-	render_from_tree();
 }
 
 
