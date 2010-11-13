@@ -3,22 +3,18 @@
 <script src="convert.js"></script>
 <script src="go.js"></script>
 <script>
-infix = infix_to_postfix(['a','=','b'])
+infix = infix_to_postfix(['a','=','b','+','b','+','c'])
 tree = new mathTree();
 tree.buildTree(infix, infix.length-1);
 
 n = new node('=');
 addleft(n,'*any*');
 addright(n,'*any*');
-addright(n.right,'b');
+addleft(n.left,'c');
 
-solns = bfs(tree.root, n);
 
-n = new node('=');
-addleft(n,'*any*');
-addright(n,'*any*');
-addright(n.right,'b');
-
-//solns = bfs(tree, n);
+bfs(tree.root, n);
+bfs(tree.root, n);
+bfs(tree.root, n);
 </script>
 </html>

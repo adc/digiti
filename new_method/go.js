@@ -41,8 +41,6 @@ function bfs(N, G)
    if(satisfies(getroot(Expr), G)){
      alert("sat");
      return Expr;
-   } else {
-     alert("0");
    }
     
    for(i = 0; i < rules.length; i++) {
@@ -61,45 +59,76 @@ Check if Goal is satisfied in Tree
 */
 function satisfies(Expr, Goal)
 {
-  var wildcard = false;
-  if(!Goal)
+
+  //if Goal is null, fail to match if Expr is not NULL
+  if(!Goal){
+    if(!Expr)
+      return true;
     return false;
+  }
+      
+  //if Expr is null, only match if goal is wildcard with 
+  // no leaves
   if(!Expr){
-    if(Goal.value == '*any*')
-      return true;
-    else
-      return true;
+    if(Goal.value == '*any*'){
+      return (!Goal.left && !Goal.right);
+    }
   }
+
+  //if current goal is a wildcard
+  if(Goal.value == '*any*')
+  {
+      if(Goal.left || Goal.right){
+        /////errr not sure if the following is right
+        
+        //try to match children first
+        if(Goal.left)
+        {
+          //advance goal left
+          if(satisfies(Expr, Goal.left))
+            return true;
+        }
+
+        if(Goal.right)
+        {
+          //advance goal right
+          if(satisfies(Expr, Goal.right))
+            return true;
+        }        
+
+        //if they didn't match, recurse and make sure left/right
+        //can be matched by the wildcard
   
-  left = Expr.left;
-  right = Expr.right;
-  
-  if(Goal.value == '*any*'){
-    wildcard = true;
-    //if there is a child, make sure child can be matched
-    
+        //do not advance goal
+        if(!satisfies(Expr.left, Goal))
+          return false;
+        if(!satisfies(Expr.right, Goal))
+          return false;
+        
+        //left right were matched, success
+        return true;
+      } else {
+        //goal has no children, wildcard versus expression
+        if(!satisfies(Expr.left, Goal))
+          return false;
+        if(!satisfies(Expr.right, Goal))
+          return false;
+        //success. goal has no children, everything satisfied.
+        return true;
+      }
   } else {
-    if(Goal.value != Expr.value) //mismatch
-      return false;
-  } 
-  
-  leftgoal = Goal.left;
-  rightgoal = Goal.right;
-
-  if(wildcard){
-    if(!leftgoal)
-      leftgoal = Goal;
-    if(!rightgoal)
-      rightgoal = Goal;
+    if(Goal.value == Expr.value){
+      //they matched, ensure children match.
+      //advance goal and expr left
+      if(!satisfies(Expr.left, Goal.left))
+        return false;
+        
+      //advance goal and expr right
+      if(!satisfies(Expr.right, Goal.right))
+        return false;
+      return true;
+    }
   }
-
-  if(!satisfies(left, leftgoal))
-    return false;
-
-  if(!satisfies(right, rightgoal))
-    return false;
-  
-  return true;
 }
 
 /*
