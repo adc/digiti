@@ -18,5 +18,6 @@ input: a-(b-c)=e
 
 drag the b over
 
-
+4) a+b+c = d
+grab the second +, then a and merge it
 

@@ -7,10 +7,12 @@ rules = [
 [ ['a','+','0'], [null, 'a', null] ],
 [ ['a','-','a'], [null, 0, null] ],
 [ ['a','-','b'], ['a', '+', '-b'] ],
-[ ['a','=','b'], ['a','-','b','=',0]],
-[ ['a','=','-b'], ['a','+','b','=',0]],
+[ ['a','=','b'], ['a','-','b','=',0] ],
+[ ['a','=','-b'], ['a','+','b','=',0] ],
 
 ]
+
+treerules = [];
 
 function QPop()
 {
@@ -19,6 +21,24 @@ function QPop()
  n = Q[0];
  Q = Q.slice(1);
  return n;
+}
+
+function build_models()
+{
+  for(var i=0; i<rules.length; i++)
+  {
+	first = infix_to_postfix(rules[i][0]);
+	second = infix_to_postfix(rules[i][1]);
+	
+	var tree = new mathTree();
+	var temp = [];
+	tree.buildTree(first, first.length-1);
+	temp.push(tree);
+	tree.buildTree(second, second.length-1);
+	temp.push(tree);
+	
+	treerules.push(temp);
+  }
 }
 
 function getroot(node)
@@ -38,12 +58,12 @@ function bfs(N, G)
  Q = [N]
 
  while(Expr = QPop(Q)) {
-   if(satisfies(getroot(Expr), G)){
+   /*if(satisfies(getroot(Expr), G)){
      alert("sat");
      return Expr;
    } else {
      alert("0");
-   }
+   }*/
     
    for(i = 0; i < rules.length; i++) {
      ret = transform(Expr, rules[i]);
@@ -108,5 +128,9 @@ Check if Rule can be applied to an Expr
 
 function transform(Node, Rule)
 {
+  if(Rule[0][Math.floor((Rule[0].length)/2)] == Node.value)
+  {
+	var n = new node();
+  }
   return null;
 }
