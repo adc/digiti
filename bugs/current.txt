@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 errors:
 
@@ -21,3 +22,6 @@ drag the b over
 4) a+b+c = d
 grab the second +, then a and merge it
 
+=======
+??
+>>>>>>> 7c9879b8b8d4933489f1c78b2a5b9bceb1fafb19
