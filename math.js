@@ -7,6 +7,18 @@ function delete_all(node)
 	delete node;
 }
 
+function op_sign(value)
+{
+  if(value == '+')
+    return '-';
+  if(value == '-')
+    return '+';
+  if(value == '/')
+    return '*';
+  if(value == '*')
+    return '/';
+}
+
 function get_real_value(node)
 {
   a = node.value;
@@ -21,23 +33,22 @@ function get_real_value(node)
   //b is the inverse of a.
   prev = node;
   n = node.par;
-  toggle = 1;
+  
+  toggle = 0;
+
   while(n.value != '=')
   {    
     //subtraction and division are left associative
-    if(n.value == b && n.right == prev)
-      toggle *= -1;
+    if(n.value == b && n.right == prev){
+      toggle += 1;
+    }
     else if(n.value != a) //have an unknown operator inbetween
       break;
     prev = n;
     n = n.par;  
   }
-  
-  if(toggle < 0){
-    if(a == '*') return '/';
-    if(a == '/') return '*';
-    if(a == '+') return '-';
-    if(a == '-') return '+';
+  if(toggle % 2 != 0){
+    return op_sign(a);
   }
   return a;
 }
@@ -47,29 +58,22 @@ function grab_opp_sign(node)
 {
   //start from the node and work up to the '=' operator
   value = get_real_value(node);
-  
-  if(value == '+')
-  		return '-';
-  if(value == '-')
-  		return '+';
-  if(value == '*')
-  		return '/';
-  if(value == '/')
-	  return '*';
+  value = op_sign(value);
+  return value;
 }
 
 function grab_left_sign(node)
 {  
   value = get_real_value(node);
 
-	if(value == '+')
-		return '-';
-	if(value == '-')
-		return '-';
-	if(value == '*')
-		return '/';
-	if(value == '/')
-		return '/';
+  //flip sign if parent is = and left associative
+  //this handles a corner case when the toggle didnt happen
+  if(node.par.value == '=')
+  {
+    if(node.value == '+' || node.value == '*')
+      value = op_sign(value);
+  }
+  return value;
 }
 
 function moved(value)
@@ -100,8 +104,7 @@ function swap_left(target, to_change)
 	//Finishes the left side
 	if(to_change.value == '=')	//If the parent node is the equals sign, then just make the left side 0
 	{
-		if(addition) newnode.value = '-';
-		else newnode.value = '/';
+		newnode.value = '-'
 		to_change.left = new node();
 		to_change.left.par = to_change;
 		to_change.left.value = '0';
@@ -139,8 +142,7 @@ function swap_right(target, to_change)
 	
 	if(to_change.value == '=')	//If the parent node is the equals sign, then just make the left side 0
 	{
-		if(addition) newnode.value = '-';
-		else newnode.value = '/';
+		newnode.value = '-'
 		to_change.right = new node();
 		to_change.right.par = to_change;
 		to_change.right.value = '0';
@@ -249,60 +251,4 @@ function clean()
 		}
 		i++;
 	}
-}
-
-
-function is_digit(str)
-{
-  return str.match(/^[0-9]+$/)
-}
-
-function did_eval(a,b)
-{
-  //try to evaluate a and b  
-  if(a.par == b.par){
-    if(is_digit(a.value) && is_digit(b.value)){
-      par = a.par;        
-      ret = eval(par.left.value+par.value+par.right.value);
-      ret = ret + ''; //convert to string
-      
-      //okay, now replace parent with a node 
- 		  result = new node();     
- 		  result.value = ret;
- 		  grandparent = par.par;
- 		  if(grandparent.right == a.par)
- 		    grandparent.right = result;
- 		  else
- 		    grandparent.left = result;
- 		  result.par = grandparent; 
- 		  
- 		  delete a;
- 		  delete b;
- 		  return true;
-    }
-  }
-  return false;
-}
-
-function try_swap(na,nb)
-{
-  //swap na and nb across their operator
-  
-  //note: a-b != b-a
-  //note: a/b != b/a
-  //TODO swap on / or -
-  if(na.par == nb.par){
-    par = na.par;
-    if(par.value == '+' || par.value == '*')
-    {
-      if(par.left == nb){
-        par.left = na;
-        par.right = nb;
-      } else {
-        par.left = nb;
-        par.right = na;
-      }
-    }
-  }
-
 }
