@@ -7,6 +7,18 @@ function delete_all(node)
 	delete node;
 }
 
+function op_sign(value)
+{
+  if(value == '+')
+    return '-';
+  if(value == '-')
+    return '+';
+  if(value == '/')
+    return '*';
+  if(value == '*')
+    return '/';
+}
+
 function get_real_value(node)
 {
   a = node.value;
@@ -21,23 +33,22 @@ function get_real_value(node)
   //b is the inverse of a.
   prev = node;
   n = node.par;
-  toggle = 1;
+  
+  toggle = 0;
+
   while(n.value != '=')
   {    
     //subtraction and division are left associative
-    if(n.value == b && n.right == prev)
-      toggle *= -1;
+    if(n.value == b && n.right == prev){
+      toggle += 1;
+    }
     else if(n.value != a) //have an unknown operator inbetween
       break;
     prev = n;
     n = n.par;  
   }
-  
-  if(toggle < 0){
-    if(a == '*') return '/';
-    if(a == '/') return '*';
-    if(a == '+') return '-';
-    if(a == '-') return '+';
+  if(toggle % 2 != 0){
+    return op_sign(a);
   }
   return a;
 }
@@ -47,29 +58,22 @@ function grab_opp_sign(node)
 {
   //start from the node and work up to the '=' operator
   value = get_real_value(node);
-  
-  if(value == '+')
-  		return '-';
-  if(value == '-')
-  		return '+';
-  if(value == '*')
-  		return '/';
-  if(value == '/')
-	  return '*';
+  value = op_sign(value);
+  return value;
 }
 
 function grab_left_sign(node)
 {  
   value = get_real_value(node);
 
-	if(value == '+')
-		return '-';
-	if(value == '-')
-		return '-';
-	if(value == '*')
-		return '/';
-	if(value == '/')
-		return '/';
+  //flip sign if parent is = and left associative
+  //this handles a corner case when the toggle didnt happen
+  if(node.par.value == '=')
+  {
+    if(node.value == '+' || node.value == '*')
+      value = op_sign(value);
+  }
+  return value;
 }
 
 function moved(value)
