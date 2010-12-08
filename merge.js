@@ -1,11 +1,11 @@
 function startmerge(i1, i2)
 {
-  var a = blocks[i1].node;
-  var b = blocks[i2].node;
-    
-  mergeeq(a,b);
-      
-  render_from_tree();
+	var a = blocks[i1].node;
+	var b = blocks[i2].node;
+	
+	mergeeq(a,b);
+	
+	render_from_tree();
 }
 
 function mergeeq(node1, node2)
@@ -27,38 +27,39 @@ function mergeeq(node1, node2)
 			arr[i] = temp;
 		}
 	}
-	
-	//Creates and solves eval string
-	if(!arr[highest_ok])
-	  return;
-	var str = arr[highest_ok].value;
-	if(str[0] == "/")
-		str = "1" + str;
-	
-	if(LCA.value == '+' || LCA.value == '-')
+
+	if(highest_ok < arr.length)
 	{
-		for(var i=highest_ok+1; i<arr.length; i++)
-		{
-			if(arr[i].value[0] == "-")
-				str = str + "-" + arr[i].value.slice(1,arr[i].value.length);
-			else
-				str = str + "+" + arr[i].value;
-		}
-	}
-	
-	else if(LCA.value == '*' || LCA.value == '/')
-	{
-		for(var i=highest_ok+1; i<arr.length; i++)
-		{
-			if(arr[i].value[0] == "/")
-				str = str + "/" + arr[i].value.slice(1,arr[i].value.length);
-			else
-				str = str + "*" + arr[i].value;
-		}
-	}
+		//Creates and solves eval string
+		var str = arr[highest_ok].value;
+		//if(str[0] == "/")
+		//	str = "1" + str;
 		
-	arr[highest_ok].value = (eval(str)).toString();
-	arr.splice(highest_ok+1, arr.length-highest_ok);
+		if(LCA.value == '+' || LCA.value == '-')
+		{
+			for(var i=highest_ok+1; i<arr.length; i++)
+			{
+				if(arr[i].value[0] == "-")
+					str = str + "-" + arr[i].value.slice(1,arr[i].value.length);
+				else
+					str = str + "+" + arr[i].value;
+			}
+		}
+		
+		else if(LCA.value == '*' || LCA.value == '/')
+		{
+			for(var i=highest_ok+1; i<arr.length; i++)
+			{
+				if(arr[i].value[0] == "/")
+					str = str + "/" + arr[i].value.slice(1,arr[i].value.length);
+				else
+					str = str + "*" + arr[i].value;
+			}
+		}
+			
+		arr[highest_ok].value = (eval(str)).toString();
+		arr.splice(highest_ok+1, arr.length-highest_ok);
+	}
 	
 	//Returns a single value or reconstructs the tree
 	if(arr.length == 1)
@@ -90,6 +91,11 @@ function mergeeq(node1, node2)
 			else
 				add.left = arr[0];
 			add.right = arr[1];
+			if(add.right.value.length > 1 && add.right.value[0] == "-")
+			{
+				add.value = "-";
+				add.right.value = add.right.value.slice(1,arr[1].value.length);
+			}
 			add.left.par = add.right.par = add;
 			arr.splice(0,2);
 			arr.unshift(add);
@@ -115,7 +121,13 @@ function mergeeq(node1, node2)
 			}
 			else
 				add.left = arr[0];
+			
 			add.right = arr[1];
+			if(add.right.value.length > 1 && add.right.value[0] == "/")
+			{
+				add.value = "/";
+				add.right.value = add.right.value.slice(1,arr[1].value.length);
+			}
 			add.left.par = add.right.par = add;
 			arr.splice(0,2);
 			arr.unshift(add);

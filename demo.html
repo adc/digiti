@@ -1,14 +1,14 @@
-<html>
-<head>
-<title>Graphs</title>
-<!-- https://developer.mozilla.org/en/Canvas_tutorial/Drawing_shapes#Rectangular_shape_example -->
-
-<script type="text/javascript" src="convert.js"></script>
-<script type="text/javascript" src="tree.js"></script>
-<script type="text/javascript" src="math.js"></script>
-<script type="text/javascript" src="merge.js"></script>
-<script type="text/javascript">
-
+<html> 
+<head> 
+<title>Graphs</title> 
+<!-- https://developer.mozilla.org/en/Canvas_tutorial/Drawing_shapes#Rectangular_shape_example --> 
+ 
+<script type="text/javascript" src="convert.js"></script> 
+<script type="text/javascript" src="tree.js"></script> 
+<script type="text/javascript" src="math.js"></script> 
+<script type="text/javascript" src="merge.js"></script> 
+<script type="text/javascript"> 
+ 
 blocks = [];
 var ctx = null;
 var WIDTH = 0;
@@ -17,7 +17,7 @@ var MINX = 0;
 var MINY = 0;
 var MAXX = 0;
 var MAXY = 0;
-
+ 
 var moving_blocks = [];
 var moving_blocks2 = [];
 var is_dragging = -1;
@@ -26,10 +26,10 @@ var prevX = -1;
 var prevY = -1;
 var prevX2 = 0;
 var prevY2 = 0;
-
+ 
 var origX=[], origY=[];
 var origX2 =[], origY2 =[];
-
+ 
 var target;
 var to_change;
 var possib;
@@ -38,13 +38,14 @@ var to_change2;
 var possib2;
 var firsttouch;
 var secondtouch;
-
+ 
 var multitouch = 0;
 var merging = 0;
-
+var addition = 1;
+ 
 /* merge blocks on the desktop */
 var fake_multitouch = -1;
-
+ 
 function Block(text) {
   this.x = 0;
   this.y = 0;
@@ -54,7 +55,7 @@ function Block(text) {
   this.node.value = text;
   this.node.toggled = false;
 }
-
+ 
 function node_to_block(n)
 {
   for(i = 0; i < blocks.length; i++){
@@ -63,12 +64,12 @@ function node_to_block(n)
   }
   return null;
 }
-
+ 
 function clear() {
   ctx.fillStyle = 'white';
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 }
-
+ 
 function align_blocks() {
   var nextX = WIDTH/2 - (blocks.length/2+1)*50;
   var nextY = HEIGHT/2 - 50;
@@ -79,24 +80,24 @@ function align_blocks() {
     nextX += blocks[i].width + 10;
   }
 }
-
+ 
 function draw()
 {
   clear();
   bluegreen = '#11e57f';
   red = '#ff0000';
-
+ 
   ctx.lineWidth = 1;
   ctx.font = "20pt Verdana";
   ctx.fillStyle = 'black';
-
+ 
   for (var i = 0; i < blocks.length; i++) {
-
+ 
     if(blocks[i].node.toggled == true)
       ctx.strokeStyle = red;
     else
       ctx.strokeStyle = bluegreen;
-
+ 
     ctx.strokeRect(blocks[i].x, blocks[i].y,
                    blocks[i].width,
                    blocks[i].height);
@@ -107,11 +108,11 @@ function draw()
     }
   }
 }
-
+ 
 function distance(x1,y1,x2,y2){
   return (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
 }
-
+ 
 function find_near_block(x,y,excl)
 {  
   var mini = Number.MAX_VALUE;
@@ -126,14 +127,14 @@ function find_near_block(x,y,excl)
   }
   return best;
 }
-
-
+ 
+ 
 function drag_finish(b, target, to_change){
   if(b < 0) return;
-
+ 
   var block = blocks[b].node;
   var equals = tree.root;
-
+ 
   //Did it go left of equals?
   if(origX[0] < node_to_block(equals).x && node_to_block(block).x > node_to_block(equals).x)
 	swap_left(target, to_change);
@@ -143,7 +144,7 @@ function drag_finish(b, target, to_change){
 	swap_right(target, to_change);
 	
   render_from_tree();
-
+ 
   if(b != -1){
     //align block i to the nearest one
     var near = find_near_block(block.x, block.y, b);
@@ -153,7 +154,7 @@ function drag_finish(b, target, to_change){
   }
   fix_x_overlaps();
 }
-
+ 
 function is_overlapping(block_idx) {
   b = blocks[block_idx];
   for(var i = 0; i < blocks.length; i++){
@@ -165,13 +166,13 @@ function is_overlapping(block_idx) {
   }
   return 0;
 }
-
+ 
 function fix_x_overlaps(){
   
   for(var i = 0; i < blocks.length; i++){
     for(var j = 0; j < blocks.length; j++){
       if(j == i) continue; 
-
+ 
       if( blocks[i].x > blocks[j].x ){
         b = blocks[i];
         a = blocks[j];
@@ -188,17 +189,17 @@ function fix_x_overlaps(){
     }
   }
 }
-
+ 
 //in: x,y coordinates
 //out: first block at those coordinates
 function find_block(x,y) {
   x -= MINX;
   y -= MINY;
-
+ 
   for (var i = 0; i < blocks.length; i++) { 
     lx = blocks[i].x;
     rx = blocks[i].width + lx;
-
+ 
     uy = blocks[i].y;
     dy = (2)*blocks[i].height + uy;
     //alert( MINX + " " + MINY + " :: " + lx + " " + x + " " + rx + "::" + uy + " " + y + " " + dy )
@@ -206,10 +207,10 @@ function find_block(x,y) {
         return i;
     }
   }
-
+ 
   return -1;
 }
-
+ 
 function get_target(node)
 {
 	target = blocks[is_dragging].node;
@@ -225,7 +226,7 @@ function get_target(node)
 	while(target.par != to_change)
 		  target = target.par;
 }
-
+ 
 function get_target2(node)
 {
 	target2 = blocks[is_dragging2].node;
@@ -241,14 +242,14 @@ function get_target2(node)
 	while(target2.par != to_change2)
 		  target2 = target2.par;
 }	
-
+ 
 function ev_canvas(ev) {
   
   if (ev.type == "mousemove") {
     if (is_dragging != -1) {
       deltaX = ev.layerX - prevX;
       deltaY = ev.layerY - prevY;
-
+ 
 	    for(var i=0; i<moving_blocks.length; i++) {
 		    moving_blocks[i].x = deltaX + origX[i];
 		    moving_blocks[i].y = deltaY + origY[i];
@@ -299,7 +300,7 @@ function ev_canvas(ev) {
 			is_dragging = -1;
 			return;
 		}
-
+ 
     drag_finish(is_dragging, target, to_change);
     is_dragging = -1;
   }  
@@ -319,7 +320,16 @@ function ev_canvas(ev) {
 		moving_blocks[i].x = deltaX + origX[i];
 		moving_blocks[i].y = deltaY + origY[i];
 	  }
-    }  else {}
+    }  
+    else {}
+
+	if(is_dragging > -1) {
+		if(moving_blocks[0].y-30 > origY[0])
+			addition = 0;
+		else
+			addition = 1;
+	}
+	else {}
   } 
   else if (ev.type == "touchstart") {
     //check through and see if the click collides with a code block
@@ -369,18 +379,19 @@ function ev_canvas(ev) {
   else if (ev.type == "touchend") {
 	if(is_dragging == -1)
 			return;
-		if(blocks[is_dragging].node.value == '=') {
+		if(blocks[is_dragging].node.value == '=' || blocks[is_dragging].node.value == '0') {
 			render_from_tree();
 			is_dragging = -1;
 			return;
 		}
 		if(merging) {
 			mergeeq(blocks[is_dragging].node, blocks[is_dragging2].node);
- 			clean();
 			merging = 0;
 		}	
  
       drag_finish(is_dragging, target, to_change);
+	  clean();
+
 	  is_dragging = -1;
       is_dragging2 = -1;
 	  multitouch = 0;
@@ -388,7 +399,7 @@ function ev_canvas(ev) {
 	  secondtouch = 0;
   }
 }
-
+ 
 function multitouchstart(ev)
 {
 	multitouch = 1;
@@ -396,7 +407,7 @@ function multitouchstart(ev)
  
 	prevX2 = ev.touches[secondtouch].pageX;
 	prevY2 = ev.touches[secondtouch].pageY;
-
+ 
 	get_target2(tree.root);
 	if(target == target2) {
 		while(target == target2) {
@@ -418,7 +429,7 @@ function multitouchstart(ev)
  		
 	moving_blocks2 = [];
 	grab_moving_blocks2(target2);
-
+ 
 	origX2 = [];
 	origY2 = [];
 	for(var i=0; i<moving_blocks2.length; i++) {
@@ -426,28 +437,28 @@ function multitouchstart(ev)
 		origY2.push(moving_blocks2[i].y);
 	}
 }
-
+ 
 function multitouchmove(ev)
 {
 	deltaX = ev.touches[firsttouch].pageX - prevX;
     deltaY = ev.touches[firsttouch].pageY - prevY;
-
+ 
 	deltaX2 = ev.touches[secondtouch].pageX - prevX2;
 	deltaY2 = ev.touches[secondtouch].pageY - prevY2;
-
+ 
 	for(var i=0; i<moving_blocks.length; i++) {
 		moving_blocks[i].x = deltaX + origX[i];
 		moving_blocks[i].y = deltaY + origY[i];
 	}
-
+ 
 	for(var i=0; i<moving_blocks2.length; i++) {
 		moving_blocks2[i].x = deltaX2 + origX2[i];
 		moving_blocks2[i].y = deltaY2 + origY2[i];
 	}
-
+ 
 	//Make fail if on opposite sides of the = sign
-	if((is_dragging < blocks.indexOf(node_to_block(tree.root)) && is_dragging2 < blocks.indexOf(node_to_block(tree.root))) || (is_dragging > blocks.indexOf(node_to_block(tree.root)) && is_dragging2 > blocks.indexOf(node_to_block(tree.root))))
-	{
+	var ep = blocks.indexOf(node_to_block(tree.root));
+	if((is_dragging < ep && is_dragging2 < ep) || (is_dragging > ep && is_dragging2 > ep)) {
 		if(origX[0] > origX2[0] && (moving_blocks[0].x - origX[0]) < 30 && (moving_blocks2[0].x - origX2[0]) > 30 )
 			merging = 1;
 		else if(origX2[0] > origX[0] && (moving_blocks2[0].x - origX2[0]) < 30 && (moving_blocks[0].x - origX[0]) > 30 )
@@ -457,13 +468,14 @@ function multitouchmove(ev)
 	}
 	else
 		merging = 0;
+						
 }
-
+ 
 function multitouchend(ev)
 {
 }
-
-
+ 
+ 
 function grab_moving_blocks(target)
 {
 	moving_blocks.push(node_to_block(target));
@@ -472,7 +484,7 @@ function grab_moving_blocks(target)
 	if(target.right)
 		grab_moving_blocks(target.right);
 }
-
+ 
 function grab_moving_blocks2(target2)
 {
 	moving_blocks2.push(node_to_block(target2));
@@ -481,7 +493,7 @@ function grab_moving_blocks2(target2)
 	if(target2.right)
 		grab_moving_blocks2(target2.right);
 }
-
+ 
 var combine_mode = 0;
 var combine_target = null;
 function ev_keyboard(ev)
@@ -489,7 +501,7 @@ function ev_keyboard(ev)
   //a user can press down 'e' to evaluate
   if(ev.keyCode != 69)
     return;
-
+ 
   if(ev.type == "keydown") {
     document.body.style.backgroundColor = "blue";    
     combine_mode = 1;
@@ -502,7 +514,7 @@ function ev_keyboard(ev)
     combine_target = false;
   }
 }
-
+ 
 function init() {
   var canvas = document.getElementById('tutorial');
   WIDTH = canvas.width;
@@ -513,18 +525,18 @@ function init() {
   MAXY = MINY+HEIGHT;
   
   align_blocks();
-
+ 
   canvas.onmousedown = ev_canvas;
   canvas.onmouseup = ev_canvas;
   canvas.onmousemove = ev_canvas;
-
-	canvas.ontouchstart = ev_canvas;
+ 
+  canvas.ontouchstart = ev_canvas;
   canvas.ontouchend = ev_canvas;
   canvas.ontouchmove = ev_canvas;
   
   document.onkeydown = ev_keyboard;
   document.onkeyup = ev_keyboard;
-
+ 
 	
   if (canvas.getContext) {
       ctx = canvas.getContext('2d');
@@ -532,10 +544,10 @@ function init() {
       return intervalId;
   }
 }
-
-
+ 
+ 
 var tree = new mathTree();
-
+ 
 /*
 This function updates the infix notation
 to match any updates to the tree.
@@ -549,10 +561,10 @@ function render_from_tree()
     b.node = newnodes[idx];
     blocks.push(b);
   }
-
+ 
   align_blocks();
 }
-
+ 
 var treemode = 0;
 function go_tree_mode()
 {
@@ -570,7 +582,7 @@ function go_tree_mode()
 	document.getElementById("Treemodebutton").value = "Treemode";
    }
 }
-
+ 
 function print_as_tree(root, over, up)
 {
   var root2 = root;
@@ -582,13 +594,13 @@ function print_as_tree(root, over, up)
   var newblock = node_to_block(root);
   newblock.x += 3*over;
   newblock.y += 50*up;
-
+ 
   if(root.left)
  	print_as_tree(root.left, 0, up+1);
   if(root.right)
  	print_as_tree(root.right, over+1, up+1);
 }
-
+ 
 function i_to_p(input) {
     //convert input into an array of blocks
     blocks = []
@@ -608,7 +620,7 @@ function i_to_p(input) {
       if(op != -1 || input[idx] == '(' || input[idx] == ')'){
         blocks.push(new Block(input[idx]));
       }
-
+ 
     }
     
     var post = infix_to_postfix(blocks);
@@ -619,62 +631,62 @@ function i_to_p(input) {
     document.getElementById("ret1").innerHTML = str;
     tree = new mathTree();
     tree.buildTree(post, post.length-1);
-
+ 
     render_from_tree();
 	
 	treemode = 1;
 	go_tree_mode();
 }
-
-
-
-</script>
-
-<style type="text/css">
+ 
+ 
+ 
+</script> 
+ 
+<style type="text/css"> 
 body { margin: 20px;
        font-family:
        arial,verdana,helvetica;
        background: #fff;}
-
+ 
 h1 { font-size: 140%;
     font-weight:
     normal;
     color: #036; border-bottom: 1px solid #ccc; 
     }
-
+ 
 canvas { border: 2px solid #000; float: left; margin-right: 20px; margin-bottom: 20px; }
 pre { float: left;
       display: block;
       background: rgb(238,238,238);
       border: 1px dashed #666; padding: 15px 20px; margin: 0 0 10px 0; 
 }
-</style>
-
-</head>
-
-<body onload="init();">
-<div>
-
-
-<form action="" name="text">
-<h3>Infix->Postfix</h3>
-<textarea name="input1"></textarea><br />
-<input type="button" value="Submit" onclick="javascript:i_to_p(document.text.input1.value);" />
-<input id="Treemodebutton" type="button" value="Treemode" onclick="javascript:go_tree_mode();" />
-
-<br />
-<br/>
-<input id="f1" type="text" />
-<input id="f2" type="text" />
-<input type="button" value="Merge" onclick="javascript:startmerge(document.text.f1.value, document.text.f2.value)">
-
-<div>
-<canvas id="tutorial" width="640" height="320"></canvas>
-</div>
-<div id="ret1"></div>
-
-<div id="firsttouch"></div>
-<div id="secondtouch"></div>
-</div>
-</body>
-</html>
+</style> 
+ 
+</head> 
+ 
+<body onload="init();"> 
+<div> 
+ 
+ 
+<form action="" name="text"> 
+<h3>Infix->Postfix</h3> 
+<textarea name="input1"></textarea><br /> 
+<input type="button" value="Submit" onclick="javascript:i_to_p(document.text.input1.value);" /> 
+<input id="Treemodebutton" type="button" value="Treemode" onclick="javascript:go_tree_mode();" /> 
+ 
+<br /> 
+<br/> 
+<input id="f1" type="text" /> 
+<input id="f2" type="text" /> 
+<input type="button" value="Merge" onclick="javascript:startmerge(document.text.f1.value, document.text.f2.value)"> 
+ 
+<div> 
+<canvas id="tutorial" width="640" height="320"></canvas> 
+</div> 
+<div id="ret1"></div> 
+ 
+<div id="firsttouch"></div> 
+<div id="secondtouch"></div> 
+</div> 
+</body> 
+</html> 
