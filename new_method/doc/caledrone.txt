@@ -116,6 +116,45 @@ if(Expr.left){
   }
 }
 
+
+And the final glue is your standard breadth first search
+
+/*
+ N-> Target node
+ Goal-> Abstract Goal
+*/
+
+function bfs(N, Goal)
+{
+ Q = [N]
+
+ console.log("**************Start expr:" + dump_expr(N)+"*************");
+ //initialize transform history
+ delete transform_history;
+ transform_history = new Array();
+
+ is_new_transform(N);
+ 
+ while(Expr = QPop(Q)) {
+   console.log("popped->" + dump_expr(Expr));
+   if(satisfies(getroot(Expr), Goal)){
+     console.log("satisfied goal");
+     return Expr;
+   }
+   for(var i = 0; i < rules.length; i++) {
+    var ret = transform_expression(Expr, rules[i]);
+    for(j = 0; ret && j < ret.length; j++){
+      if(!is_new_transform(ret[j]))
+        continue;
+      console.log("got new transform->" + dump_expr(ret[j]) + ' from ' + dump_expr(Expr) + '  using ' + rules[i]);
+      Q.push(ret[j]); 
+    }
+   }
+ }
+ 
+ return null;
+}
+
 ==============================================
 ==============================================
 ==============================================

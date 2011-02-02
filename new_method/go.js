@@ -1,5 +1,7 @@
 function dump_expr(Expr)
 {
+  if(!Expr)
+    return "FAIL: nil";
   var a = print_infix(Expr);
   var string = "";
   for(i = 0; i < a.length; i++)
@@ -39,7 +41,7 @@ function getroot(node)
  Goal-> Abstract Goal
 */
 
-function bfs(N, Goal)
+function bfs(N, Goals)
 {
  Q = [N]
 
@@ -53,8 +55,9 @@ function bfs(N, Goal)
  
  while(Expr = QPop(Q)) {
    console.log("popped->" + dump_expr(Expr));
-   if(satisfies(getroot(Expr), Goal)){
-     console.log("satisfied goal");
+ 
+   if(satisfies(getroot(Expr), Goals)){
+     console.log("satisfied goals");
      return Expr;
    }
    for(var i = 0; i < rules.length; i++) {
@@ -65,6 +68,12 @@ function bfs(N, Goal)
       console.log("got new transform->" + dump_expr(ret[j]) + ' from ' + dump_expr(Expr) + '  using ' + rules[i]);
       Q.push(ret[j]); 
     }
+   }
+   
+   if(Q.length > 100){
+     //error condition
+     console.log("HIT HARD LIMIT");
+     return null;
    }
  }
  
@@ -142,11 +151,15 @@ function do_mutate(Mutant, Binding, Replacement)
   if(Replacement.constructor == Array) {
     //verify that the operator matches
     Mutant = new node();
-    
+
+    /* create a binding for operators, even if they werent bound 
+      this allows inverting rules, etc
+    */
     if(!Binding[Replacement[1]] && isOp(Replacement[1]))
       Binding[Replacement[1]] = Replacement[1];
       
     //XXX what happens if Replacement[1] IS REALLY AN ARRAY HERE? fail
+    //XXX on second thought, the value in a binary tree should never be an array
     Mutant.value = Replacement[1];
     
     Mutant.left = new node();
@@ -248,25 +261,39 @@ function transform_expression(Expr, Rule)
   return Transforms;
 }
 
-
+/*Check if all Goals are satisfied in Tree
+*/
+function satisfies(Expr, Goals)
+{
+  if(Goals.constructor == Array){
+    for(var i = 0; i < Goals.length; i++){
+      if(!does_satisfy(Expr, Goals[i]))
+        return false;
+    }
+    return true;
+  }else{
+    return does_satisfy(Expr, Goals);    
+  }
+}
 /*
 Check if Goal is satisfied in Tree
 */
-function satisfies(Expr, Goal)
+function does_satisfy(Expr, Goal)
 {
-
   //if Goal is null, fail to match if Expr is not NULL
   if(!Goal){
     if(!Expr){
+//      console.log("true because both nil");
       return true;
     }
+//    console.log("false because Expr w/out Goal")    
     return false;
   }
-      
   //if Expr is null, only match if goal is wildcard with 
   // no leaves
   if(!Expr){
     if(Goal.value == '*any*'){
+//      console.log("returning true if goal has no children.."+(!Goal.left && !Goal.right));
       return (!Goal.left && !Goal.right);
     }
   }
@@ -274,61 +301,83 @@ function satisfies(Expr, Goal)
   //if current goal is a wildcard
   if(Goal.value == '*any*')
   {
+//      console.log("Goal is a wildcard");
       if(Goal.left || Goal.right){
+//        console.log("checking goal children");
         /////errr not sure if the following is right
         /////needs testing
+
         
         //try to match children first
         if(Goal.left)
         {
+//          console.log("Checking left");
           //advance goal left
-          if(satisfies(Expr, Goal.left))
+          if(does_satisfy(Expr, Goal.left))
             return true;
-          if(satisfies(Expr.left, Goal.left))
+          if(does_satisfy(Expr.left, Goal.left))
             return true;
         }
-
         if(Goal.right)
         {
+//          console.log("Checking right");
           //advance goal right
-          if(satisfies(Expr, Goal.right))
+          if(does_satisfy(Expr, Goal.right))
             return true;
-          if(satisfies(Expr.right, Goal.right))
+          if(does_satisfy(Expr.right, Goal.right))
             return true;
+//          console.log("Advancing both didnt work");
         }        
 
         //if they didn't match, recurse and make sure left/right
         //can be matched by the wildcard
+
+//        console.log("Failed, making sure rest works out");
+        return false; //todo
   
         //do not advance goal
-        if(!satisfies(Expr.left, Goal))
+        if(!does_satisfy(Expr.left, Goal))
           return false;
-        if(!satisfies(Expr.right, Goal))
+        if(!does_satisfy(Expr.right, Goal))
           return false;
         
         //left right were matched, success
+//        console.log("true because fell through w/ left right matches")
         return true;
       } else {
+//        console.log("Goal had no children, checking that blah");
         //goal has no children, wildcard versus expression
-        if(!satisfies(Expr.left, Goal))
+        if(!does_satisfy(Expr.left, Goal))
           return false;
-        if(!satisfies(Expr.right, Goal))
+        if(!does_satisfy(Expr.right, Goal))
           return false;
         //success. goal has no children, everything satisfied.
+//        console.log("true2 because fell through w/ left right matches")
         return true;
       }
   } else {
     if(Expr && Goal.value == Expr.value){
+//      console.log("Goal had a value that matched...")
       //they matched, ensure children match.
       //advance goal and expr left
-      if(!satisfies(Expr.left, Goal.left))
+//      console.log("Advance both left");
+      if(!does_satisfy(Expr.left, Goal.left))
         return false;
-        
+
+//      console.log("Good, advance both right");        
       //advance goal and expr right
-      if(!satisfies(Expr.right, Goal.right))
+      if(!does_satisfy(Expr.right, Goal.right))
         return false;
+
+//      console.log("goal with value checks passed return true");
       return true;
     }
+    if(!Expr)
+      return false;
+//    console.log("Goal and Expr mismatch");
+//    console.log(Goal.value);
+//    console.log(Expr.value);
+    return false;
   }
 }
 
