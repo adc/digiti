@@ -6,7 +6,7 @@
 <body>
 </body>
 <script>
-infix = infix_to_postfix(['a','=','b','+','c'])
+infix = infix_to_postfix(['a','=','b','+','c','+','d'])
 ___tree = new mathTree();
 ___tree.buildTree(infix, infix.length-1);
 output = ___tree.printTree();
@@ -21,18 +21,23 @@ function printString(nodes)
 	return x;
 }
 
-rg = new node('=');
-addleft(rg,'*any*');
-addright(rg,'*any*');
-addright(rg.right,'c');
-
 lg = new node('=');
 addleft(lg,'*any*');
 addright(lg,'*any*');
-addright(lg.left,'c');
-
-ret = bfs(___tree.root, lg);
-//bfs(___tree.root, rg);
+addright(lg.left,'d');
+lg1 = lg;
+lg = new node('=');
+addleft(lg,'*any*');
+addright(lg,'*any*');
+addleft(lg.left,'*any*');
+addleft(lg.left.left, 'a');
+lg2 = lg;
+lg = new node('=');
+addleft(lg,'*any*');
+addright(lg,'*any*');
+addright(lg.right,'b');
+lg3 = lg;
+ret = bfs(___tree.root, [lg1,lg2,lg3]);
 
 //*/
 document.body.innerHTML="done " + (new Date()).getSeconds() + "<br/>" + dump_expr(___tree.root) + "=>" + dump_expr(ret);

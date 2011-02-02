@@ -1,7 +1,7 @@
 TODO:
 	1) Rotation across two +
 	
-		a = b + c + d
+		a = b  + c + d
 
 	2)		
 		Go through different algebraic rules.
